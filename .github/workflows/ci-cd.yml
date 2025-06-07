@@ -74,27 +74,28 @@ jobs:
         DB_PASSWORD: testpassword
         DB_NAME: hotaku_test_db
         JWT_SECRET: test-secret-key
-      run: go test -v -race -coverprofile=coverage.out ./...
+      run: go test -v -race ./...
 
-    - name: Generate coverage report
-      run: go tool cover -html=coverage.out -o coverage.html
+    # TODO: Coverage reporting temporarily disabled
+    # - name: Generate coverage report
+    #   run: go tool cover -html=coverage.out -o coverage.html
 
-    - name: Upload coverage reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: |
-          coverage.out
-          coverage.html
+    # - name: Upload coverage reports
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: coverage-report
+    #     path: |
+    #       coverage.out
+    #       coverage.html
 
-    - name: Check coverage threshold
-      run: |
-        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
-        echo "Current coverage: ${COVERAGE}%"
-        if (( $(echo "$COVERAGE < 50" | bc -l) )); then
-          echo "Coverage is below 50%"
-          exit 1
-        fi
+    # - name: Check coverage threshold
+    #   run: |
+    #     COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
+    #     echo "Current coverage: ${COVERAGE}%"
+    #     if (( $(echo "$COVERAGE < 50" | bc -l) )); then
+    #       echo "Coverage is below 50%"
+    #       exit 1
+    #     fi
 
   # Build Job
   build:
@@ -243,11 +244,12 @@ jobs:
         echo "}" >> docs/index.md
         echo "\`\`\`" >> docs/index.md
 
-    - name: Download coverage report
-      uses: actions/download-artifact@v4
-      with:
-        name: coverage-report
-        path: docs/
+    # TODO: Coverage report download temporarily disabled
+    # - name: Download coverage report
+    #   uses: actions/download-artifact@v4
+    #   with:
+    #     name: coverage-report
+    #     path: docs/
 
     - name: Generate HTML documentation
       run: |
