@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"hotaku-api/config"
-	"hotaku-api/interfaces"
-	"hotaku-api/models"
+	"hotaku-api/internal/interfaces"
+	"hotaku-api/internal/models"
 	"hotaku-api/utils"
 
 	"github.com/gin-gonic/gin"
@@ -153,7 +153,7 @@ func Profile(c *gin.Context) {
 
 func UpdateProfile(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	
+
 	var req interfaces.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response := interfaces.NewErrorResponse("Invalid request data", err.Error())
@@ -211,4 +211,4 @@ func UpdateProfile(c *gin.Context) {
 
 	response := interfaces.NewUserResponse("Profile updated successfully", userData)
 	c.JSON(http.StatusOK, response)
-} 
+}
