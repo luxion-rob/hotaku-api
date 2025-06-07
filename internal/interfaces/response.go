@@ -150,4 +150,4 @@ func (r *BaseResponse) GetStatus() int {
 // GetMessage implements APIResponse interface
 func (r *BaseResponse) GetMessage() string {
 	return r.Message
-} 
+}

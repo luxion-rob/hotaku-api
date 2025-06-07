@@ -54,4 +54,4 @@ func setDefaultEnvVars() {
 			os.Setenv(key, defaultValue)
 		}
 	}
-} 
+}

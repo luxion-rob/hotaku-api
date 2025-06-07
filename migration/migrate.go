@@ -40,7 +40,7 @@ func RunMigrations() error {
 	if err != nil {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
-	
+
 	migrationsPath := fmt.Sprintf("file://%s/migrations", wd)
 	log.Printf("Using migrations path: %s", migrationsPath)
 
@@ -92,7 +92,7 @@ func RollbackMigrations(steps int) error {
 	if err != nil {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
-	
+
 	migrationsPath := fmt.Sprintf("file://%s/migrations", wd)
 
 	// Create migrate instance
@@ -112,4 +112,4 @@ func RollbackMigrations(steps int) error {
 
 	log.Printf("Rolled back %d migrations successfully", steps)
 	return nil
-} 
+}
