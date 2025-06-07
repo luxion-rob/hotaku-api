@@ -1,10 +1,14 @@
-.PHONY: help build run migrate-up migrate-down migrate-status docker-up docker-down clean
+.PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean
 
 # Default target
 help:
 	@echo "Available commands:"
 	@echo "  make build         - Build the application"
 	@echo "  make run           - Run the application locally"
+	@echo "  make test          - Run tests"
+	@echo "  make test-coverage - Run tests with coverage"
+	@echo "  make fmt           - Format code"
+	@echo "  make lint          - Run linter"
 	@echo "  make docker-up     - Start Docker containers"
 	@echo "  make docker-down   - Stop Docker containers"
 	@echo "  make migrate-up    - Run database migrations"
@@ -19,6 +23,24 @@ build:
 # Run the application locally (requires local database)
 run:
 	go run main.go
+
+# Run tests
+test:
+	go test -v -race ./...
+
+# Run tests with coverage
+test-coverage:
+	go test -v -race -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
+
+# Format code
+fmt:
+	go fmt ./...
+
+# Run linter
+lint:
+	go vet ./...
 
 # Start Docker containers
 docker-up:

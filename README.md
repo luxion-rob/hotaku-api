@@ -72,25 +72,82 @@ make migrate-status
 ## Development
 
 The project uses:
-- Go 1.21
-- Gin web framework v1.9.1
+- Go 1.22.2
+- Gin web framework v1.10.1
 - Air for hot reloading
 - Docker with development and production configurations
+- GitHub Actions for CI/CD
+- Comprehensive test suite with coverage reporting
 
 ## Project Structure
 
 ```
 .
-├── main.go           # Main application code
-├── go.mod           # Go module definition
-├── .air.toml        # Air configuration for hot reload
-├── Dockerfile       # Docker configuration
-├── compose.yml      # Docker Compose configuration
-├── migrations/      # Database migration files
-├── cmd/             # CLI commands
-├── scripts/         # Shell scripts
-└── Makefile         # Development commands
+├── main.go              # Main application code
+├── main_test.go         # Main integration tests
+├── go.mod              # Go module definition
+├── .air.toml           # Air configuration for hot reload
+├── Dockerfile          # Docker configuration
+├── compose.yml         # Docker Compose configuration
+├── migrations/         # Database migration files
+├── controllers/        # HTTP handlers and tests
+├── config/             # Configuration files
+├── utils/              # Utility functions
+├── cmd/                # CLI commands
+├── scripts/            # Shell scripts
+├── docs/               # Documentation and GitHub Pages
+├── .github/workflows/  # GitHub Actions workflows
+└── Makefile            # Development commands
 ```
+
+## Testing
+
+The project includes comprehensive test coverage:
+
+```bash
+# Run all tests
+make test
+
+# Run tests with coverage
+make test-coverage
+
+# Format code
+make fmt
+
+# Run linter
+make lint
+```
+
+## GitHub Actions CI/CD
+
+This project includes a comprehensive CI/CD pipeline with multiple workflows:
+
+### 🔄 Main CI/CD Pipeline (`.github/workflows/ci-cd.yml`)
+Runs on pushes to `main`/`develop` branches:
+- **Testing**: Unit tests with MySQL service, coverage reporting
+- **Building**: Go application compilation
+- **Security**: Gosec security scanning
+- **Docker**: Multi-platform container builds
+- **Documentation**: Automatic GitHub Pages deployment
+
+### 🔍 Pull Request Checks (`.github/workflows/pr-check.yml`)
+Lightweight validation for pull requests:
+- Code formatting checks
+- Tests execution
+- Build verification
+
+### 🚀 Release Workflow (`.github/workflows/release.yml`)
+Triggered on version tags (`v*.*.*`):
+- Multi-platform binary builds (Linux, Windows, macOS)
+- Automated changelog generation
+- GitHub release creation
+- Docker image publishing
+
+### 📚 GitHub Pages
+Documentation is automatically deployed to GitHub Pages:
+- API documentation
+- Test coverage reports
+- Project structure and usage guides
 
 ## Building for Production
 
