@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Main API service for testing
+  api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"  # Different port to avoid conflicts
+    environment:
+      - GIN_MODE=test
+      - GO111MODULE=on
+      - DB_HOST=mysql-test
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=testpassword
+      - DB_NAME=hotaku_test_db
+      - JWT_SECRET=test-secret-key
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    # Wait for database to be ready
+    command: sh -c "sleep 10 && ./main"
+
+  # MySQL service for testing
+  mysql-test:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"  # Different port to avoid conflicts
+    environment:
+      - MYSQL_ROOT_PASSWORD=testpassword
+      - MYSQL_DATABASE=hotaku_test_db
+      - MYSQL_USER=testuser
+      - MYSQL_PASSWORD=testpassword
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+      - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptestpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis for testing (if needed for caching/sessions)
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"  # Different port to avoid conflicts
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - .:/app
+      - /app/tmp  # Exclude tmp directory
+    working_dir: /app
+    environment:
+      - GO111MODULE=on
+      - DB_HOST=mysql-test
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=testpassword
+      - DB_NAME=hotaku_test_db
+      - JWT_SECRET=test-secret-key
+      - GIN_MODE=test
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    profiles:
+      - test
+    command: go test -v -race -coverprofile=coverage.out ./...
+
+volumes:
+  mysql_test_data:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge 

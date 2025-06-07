@@ -102,8 +102,9 @@ The project uses:
 
 ## Testing
 
-The project includes comprehensive test coverage:
+The project includes comprehensive test coverage with both unit tests and integration tests:
 
+### Unit Tests
 ```bash
 # Run all tests
 make test
@@ -116,6 +117,54 @@ make fmt
 
 # Run linter
 make lint
+```
+
+### Docker Testing Environment
+
+A complete testing environment is available using Docker Compose:
+
+```bash
+# Start test environment (MySQL + Redis + API)
+make test-env
+
+# Run tests in containerized environment
+make test-run
+
+# Run integration tests against test API
+make test-integration
+
+# Stop test environment
+make test-env-down
+
+# Clean up test environment completely
+make test-cleanup
+```
+
+The test environment includes:
+- **MySQL 8.0** on port 3307 (isolated from development)
+- **Redis 7** on port 6380 (for caching/sessions)
+- **API service** on port 3001 (test configuration)
+- **Test runner** service for automated testing
+
+#### Test Environment Configuration
+- Database: `hotaku_test_db`
+- MySQL User: `root` / Password: `testpassword`
+- Test API URL: `http://localhost:3001`
+- All services run in isolated `test-network`
+
+#### Manual Testing Against Test Environment
+```bash
+# Start test environment
+make test-env
+
+# Test the API
+curl http://localhost:3001/
+
+# Run your integration tests
+# ... your test commands here ...
+
+# Clean up
+make test-env-down
 ```
 
 ## GitHub Actions CI/CD
