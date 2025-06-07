@@ -1,6 +1,6 @@
 package interfaces
 
-import "hotaku-api/models"
+import "hotaku-api/internal/models"
 
 // AuthService defines the interface for authentication services
 type AuthService interface {
@@ -79,4 +79,4 @@ type Cache interface {
 	Get(key string) (interface{}, error)
 	Delete(key string) error
 	Clear() error
-} 
+}
