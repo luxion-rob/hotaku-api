@@ -24,5 +24,4 @@ func main() {
 	if err := r.Run(":3000"); err != nil {
 		panic(fmt.Sprintf("Failed to start server: %v", err))
 	}
-	r.Run(":3000")
 }
