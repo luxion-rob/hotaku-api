@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"hotaku-api/config"
-	"hotaku-api/interfaces"
+	"hotaku-api/internal/interfaces"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
