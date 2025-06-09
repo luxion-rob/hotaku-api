@@ -59,7 +59,7 @@ make migrate-status
 ## API Endpoints
 
 ### Public Endpoints
-- `GET /` - Health check endpoint
+- `GET /health` - Health check endpoint
 
 ### Authentication Endpoints
 - `POST /auth/register` - User registration
