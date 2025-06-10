@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -44,7 +45,7 @@ func LoadConfig() *Config {
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "3306"),
 			User:     getEnv("DB_USER", "root"),
-			Password: getEnv("DB_PASSWORD", "password"),
+			Password: getEnv("DB_PASSWORD", "rootpassword"),
 			Name:     getEnv("DB_NAME", "hotaku_db"),
 		},
 		Server: ServerConfig{
@@ -57,6 +58,7 @@ func LoadConfig() *Config {
 			Env:     getEnv("APP_ENV", "development"),
 		},
 	}
+	fmt.Printf("Loading config from environment variables\n%v", config)
 
 	GlobalConfig = config
 	return config

@@ -5,6 +5,8 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 
+COPY infra/scripts/.env* ./
+
 COPY . .
 RUN go build -o main .
 
