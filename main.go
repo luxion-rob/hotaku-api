@@ -4,12 +4,19 @@ import (
 	"fmt"
 	"hotaku-api/config"
 	"hotaku-api/internal/interfaces"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file if it exists (for local development)
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using environment variables")
+	}
+
 	// Load configuration
 	appConfig := config.LoadConfig()
 
