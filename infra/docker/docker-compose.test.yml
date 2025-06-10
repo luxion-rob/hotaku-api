@@ -4,8 +4,8 @@ services:
   # Main API service for testing
   api-test:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: infra/docker/Dockerfile
     ports:
       - "3001:3000"  # Different port to avoid conflicts
     environment:
@@ -37,7 +37,7 @@ services:
       - MYSQL_PASSWORD=testpassword
     volumes:
       - mysql_test_data:/var/lib/mysql
-      - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ../scripts/init-test-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - test-network
     healthcheck:
@@ -63,8 +63,8 @@ services:
   # Test runner service
   test-runner:
     build:
-      context: .
-      dockerfile: Dockerfile.test
+      context: ../../
+      dockerfile: infra/docker/Dockerfile.test
     volumes:
       - .:/app
       - /app/tmp  # Exclude tmp directory

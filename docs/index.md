@@ -5,11 +5,13 @@ Welcome to the Hotaku API documentation. This is a RESTful API built with Go and
 ## 🚀 Quick Start
 
 ### Base URL
+
 ```
 https://your-domain.com/api
 ```
 
 ### Authentication
+
 This API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
 
 ```
@@ -19,11 +21,13 @@ Authorization: Bearer <your-jwt-token>
 ## 📚 API Endpoints
 
 ### Health Check
+
 Check if the API is running and healthy.
 
 **Endpoint:** `GET /`
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -39,15 +43,18 @@ Check if the API is running and healthy.
 hotaku-api/
 ├── controllers/          # HTTP handlers
 ├── config/              # Configuration files
-├── migrations/          # Database migrations
 ├── utils/               # Utility functions
 ├── cmd/                 # CLI commands
-├── scripts/             # Shell scripts
 ├── docs/                # Documentation
 ├── .github/workflows/   # GitHub Actions
+├── infra/               # Infrastructure and DevOps
+│   ├── docker/         # Docker configurations
+│   ├── migrations/     # Database migrations
+│   ├── scripts/        # Infrastructure scripts
+│   ├── config/         # Infrastructure configs
+│   └── Makefile        # Build commands
 ├── main.go              # Application entry point
 ├── go.mod              # Go module file
-├── Dockerfile          # Docker configuration
 └── README.md           # Project README
 ```
 
@@ -61,11 +68,13 @@ The API includes comprehensive test coverage:
 - Automated testing in CI/CD pipeline
 
 To run tests locally:
+
 ```bash
 go test -v ./...
 ```
 
 To run tests with coverage:
+
 ```bash
 go test -v -race -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out -o coverage.html
@@ -74,11 +83,13 @@ go tool cover -html=coverage.out -o coverage.html
 ## 🐳 Docker
 
 ### Development
+
 ```bash
 docker compose up --build
 ```
 
 ### Production
+
 ```bash
 docker build -t hotaku-api .
 docker run -p 3000:3000 hotaku-api
@@ -111,6 +122,7 @@ This project includes a comprehensive CI/CD pipeline that:
 ### Pipeline Status
 
 The pipeline runs on:
+
 - Push to `main` or `develop` branches
 - Pull requests to `main`
 
@@ -134,4 +146,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-*Documentation generated automatically by GitHub Actions* 
+Documentation generated automatically by GitHub Actions

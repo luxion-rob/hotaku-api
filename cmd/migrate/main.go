@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"hotaku-api/migration"
+	migration "hotaku-api/infra/migrations"
 	"log"
 	"os"
 )
@@ -32,7 +32,7 @@ func main() {
 		fmt.Printf("Rolled back %d migrations successfully!\n", *steps)
 
 	default:
-		fmt.Println("Usage: go run cmd/migrate/main.go -action=[up|down] [-steps=n]")
+		fmt.Println("Usage: go run ../cmd/migrate/main.go -action=[up|down] [-steps=n]")
 		fmt.Println("Examples:")
 		fmt.Println("  go run cmd/migrate/main.go -action=up")
 		fmt.Println("  go run cmd/migrate/main.go -action=down -steps=1")

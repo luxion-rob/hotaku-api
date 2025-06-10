@@ -10,6 +10,12 @@ import (
 )
 
 func main() {
+	// Load configuration
+	appConfig := config.LoadConfig()
+
+	// Set Gin mode
+	gin.SetMode(appConfig.Server.GinMode)
+
 	// Connect to database
 	config.ConnectDatabase()
 
@@ -21,7 +27,11 @@ func main() {
 		c.JSON(http.StatusOK, response)
 	})
 
-	if err := r.Run(":3000"); err != nil {
+	serverAddr := ":" + appConfig.Server.Port
+	fmt.Printf("Starting %s v%s on port %s in %s mode\n",
+		appConfig.App.Name, appConfig.App.Version, appConfig.Server.Port, appConfig.App.Env)
+
+	if err := r.Run(serverAddr); err != nil {
 		panic(fmt.Sprintf("Failed to start server: %v", err))
 	}
 }

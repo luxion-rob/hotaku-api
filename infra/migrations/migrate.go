@@ -41,7 +41,7 @@ func RunMigrations() error {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
 
-	migrationsPath := fmt.Sprintf("file://%s/migrations", wd)
+	migrationsPath := fmt.Sprintf("file://%s/migrations/sql", wd)
 	log.Printf("Using migrations path: %s", migrationsPath)
 
 	// Create migrate instance
@@ -93,7 +93,8 @@ func RollbackMigrations(steps int) error {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
 
-	migrationsPath := fmt.Sprintf("file://%s/migrations", wd)
+	// Point to the migrations/sql directory where SQL files are located
+	migrationsPath := fmt.Sprintf("file://%s/migrations/sql", wd)
 
 	// Create migrate instance
 	m, err := migrate.NewWithDatabaseInstance(

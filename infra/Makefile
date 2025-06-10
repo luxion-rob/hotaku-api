@@ -22,37 +22,37 @@ help:
 
 # Build the application
 build:
-	go build -o bin/hotaku-api main.go
+	cd .. && go build -o bin/hotaku-api main.go
 
 # Run the application locally (requires local database)
 run:
-	go run main.go
+	cd .. && go run main.go
 
 # Run tests
 test:
-	go test -v -race ./...
+	cd .. && go test -v -race ./...
 
 # Run tests with coverage
 test-coverage:
-	go test -v -race -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
+	cd .. && go test -v -race -coverprofile=coverage.out ./...
+	cd .. && go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
 # Format code
 fmt:
-	go fmt ./...
+	cd .. && go fmt ./...
 
 # Run linter
 lint:
-	go vet ./...
+	cd .. && go vet ./...
 
 # Start Docker containers
 docker-up:
-	docker compose up -d
+	docker compose -f docker/docker-compose.yml up -d
 
 # Stop Docker containers
 docker-down:
-	docker compose down
+	docker compose -f docker/docker-compose.yml down
 
 # Run database migrations
 migrate-up:
@@ -71,7 +71,7 @@ migrate-status:
 
 # Clean up Docker containers and volumes
 clean:
-	docker compose down -v
+	docker compose -f docker/docker-compose.yml down -v
 	docker system prune -f
 
 # Development setup - start containers and run migrations
@@ -82,27 +82,27 @@ dev-setup: docker-up
 
 # Full development start
 dev: dev-setup
-	docker compose logs -f api
+	docker compose -f docker/docker-compose.yml logs -f api
 
 # Test environment targets
 test-env:
-	docker compose -f docker-compose.test.yml up -d
+	docker compose -f docker/docker-compose.test.yml up -d
 	@echo "Waiting for test environment to be ready..."
 	@sleep 15
 	@echo "Test environment is ready!"
 
 # Stop test environment
 test-env-down:
-	docker compose -f docker-compose.test.yml down
+	docker compose -f docker/docker-compose.test.yml down
 
 # Run tests in containerized environment
 test-run: test-env
-	docker compose -f docker-compose.test.yml --profile test run --rm test-runner
+	docker compose -f docker/docker-compose.test.yml --profile test run --rm test-runner
 	@make test-env-down
 
 # Clean up test environment completely
 test-cleanup:
-	docker compose -f docker-compose.test.yml down -v
+	docker compose -f docker/docker-compose.test.yml down -v
 	docker system prune -f
 
 # Run integration tests against test API
