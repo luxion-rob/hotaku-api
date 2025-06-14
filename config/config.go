@@ -97,14 +97,3 @@ func getEnvAsInt(key string, defaultValue int) int {
 	}
 	return defaultValue
 }
-
-// getEnvAsBool gets environment variable as boolean with fallback to default value
-func getEnvAsBool(key string, defaultValue bool) bool {
-	if value := os.Getenv(key); value != "" {
-		if boolValue, err := strconv.ParseBool(value); err == nil {
-			return boolValue
-		}
-		log.Printf("Error: Invalid boolean value for %s: %s, using default: %t", key, value, defaultValue)
-	}
-	return defaultValue
-}
