@@ -29,3 +29,21 @@ tmp
 .env.development
 .env.test
 .env.production
+
+# Security: Secrets and sensitive files
+infra/secrets/*.txt
+infra/secrets/*.key
+infra/secrets/*.pem
+infra/secrets/*.crt
+infra/secrets/*.p12
+infra/secrets/*.jks
+*.secret
+*.private
+*_secret
+*_password
+*_key
+*.credentials
+
+# Coverage reports
+coverage.out
+coverage.html

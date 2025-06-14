@@ -34,9 +34,14 @@ func main() {
 		c.JSON(http.StatusOK, response)
 	})
 
-	serverAddr := ":" + appConfig.Server.Port
-	fmt.Printf("Starting %s v%s on port %s in %s mode\n",
-		appConfig.App.Name, appConfig.App.Version, appConfig.Server.Port, appConfig.App.Env)
+	serverAddr := fmt.Sprintf(":%d", appConfig.Server.Port)
+	log.Printf(
+		"Starting %s v%s on port %d in %s mode\n",
+		appConfig.App.Name,
+		appConfig.App.Version,
+		appConfig.Server.Port,
+		appConfig.App.Env,
+	)
 
 	if err := r.Run(serverAddr); err != nil {
 		panic(fmt.Sprintf("Failed to start server: %v", err))

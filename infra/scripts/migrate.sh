@@ -59,12 +59,12 @@ wait_for_db() {
             print_status "Database is ready!"
             break
         fi
-        
+
         if [ $attempt -eq $max_attempts ]; then
             print_error "Database is not ready after $max_attempts attempts"
             exit 1
         fi
-        
+
         print_warning "Attempt $attempt/$max_attempts: Database not ready, waiting..."
         sleep 2
         ((attempt++))
@@ -87,7 +87,7 @@ migrate_down() {
     print_status "Rolling back $steps migration(s)..."
     check_go
     wait_for_db
-    go run ../cmd/migrate/main.go -action=down -steps=$steps
+    go run ../cmd/migrate/main.go -action=down -steps="$steps"
     print_status "Rollback completed!"
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	migration "hotaku-api/infra/migrations"
 	"log"
 	"os"
@@ -23,19 +22,19 @@ func main() {
 		if err := migration.RunMigrations(); err != nil {
 			log.Fatal("Migration failed:", err)
 		}
-		fmt.Println("Migrations completed successfully!")
+		log.Println("Migrations completed successfully!")
 
 	case "down":
 		if err := migration.RollbackMigrations(*steps); err != nil {
 			log.Fatal("Rollback failed:", err)
 		}
-		fmt.Printf("Rolled back %d migrations successfully!\n", *steps)
+		log.Printf("Rolled back %d migrations successfully!\n", *steps)
 
 	default:
-		fmt.Println("Usage: go run ../cmd/migrate/main.go -action=[up|down] [-steps=n]")
-		fmt.Println("Examples:")
-		fmt.Println("  go run cmd/migrate/main.go -action=up")
-		fmt.Println("  go run cmd/migrate/main.go -action=down -steps=1")
+		log.Println("Usage: go run ../cmd/migrate/main.go -action=[up|down] [-steps=n]")
+		log.Println("Examples:")
+		log.Println("  go run cmd/migrate/main.go -action=up")
+		log.Println("  go run cmd/migrate/main.go -action=down -steps=1")
 		os.Exit(1)
 	}
 }

@@ -1,4 +1,4 @@
-# Hotaku API Documentation
+# Hotaku API Documentation v1.0.0
 
 Welcome to the Hotaku API documentation. This is a RESTful API built with Go and the Gin framework.
 
@@ -6,7 +6,7 @@ Welcome to the Hotaku API documentation. This is a RESTful API built with Go and
 
 ### Base URL
 
-```
+```url
 https://your-domain.com/api
 ```
 
@@ -14,7 +14,7 @@ https://your-domain.com/api
 
 This API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
 
-```
+```txt
 Authorization: Bearer <your-jwt-token>
 ```
 
@@ -24,7 +24,7 @@ Authorization: Bearer <your-jwt-token>
 
 Check if the API is running and healthy.
 
-**Endpoint:** `GET /`
+**Endpoint:** `GET /health`
 
 **Response:**
 
@@ -39,9 +39,10 @@ Check if the API is running and healthy.
 
 ## 🏗️ Project Structure
 
-```
+```txt
 hotaku-api/
 ├── controllers/          # HTTP handlers
+│   └── controllers/health.go    # Health check handler
 ├── config/              # Configuration files
 ├── utils/               # Utility functions
 ├── cmd/                 # CLI commands
@@ -54,6 +55,7 @@ hotaku-api/
 │   ├── config/         # Infrastructure configs
 │   └── Makefile        # Build commands
 ├── main.go              # Application entry point
+├── main_test.go         # Main integration tests
 ├── go.mod              # Go module file
 └── README.md           # Project README
 ```

@@ -4,7 +4,7 @@ This directory contains all infrastructure and DevOps related files for the Hota
 
 ## Directory Structure
 
-```
+```txt
 infra/
 ├── docker/             # Docker configurations
 │   ├── docker-compose.yml      # Development environment
@@ -52,6 +52,7 @@ make docker-down
 ### Docker Commands
 
 #### Development Environment
+
 ```bash
 # Start development stack (API + MySQL)
 docker compose -f docker/docker-compose.yml up -d
@@ -64,6 +65,7 @@ docker compose -f docker/docker-compose.yml down
 ```
 
 #### Test Environment
+
 ```bash
 # Start test stack (API + MySQL + Redis)
 docker compose -f docker/docker-compose.test.yml up -d
@@ -91,14 +93,17 @@ make migrate-status
 ### Configuration Files
 
 #### Docker Compose
+
 - `docker/docker-compose.yml` - Development environment with MySQL
 - `docker/docker-compose.test.yml` - Testing environment with MySQL and Redis
 
 #### Dockerfiles
+
 - `docker/Dockerfile` - Multi-stage production image
 - `docker/Dockerfile.test` - Testing image with test dependencies
 
 #### Air Configuration
+
 - `config/.air.toml` - Hot reload configuration for development
 
 ### Environment Variables
@@ -132,10 +137,12 @@ Copy `scripts/env.example` to your environment file and configure:
 ## Troubleshooting
 
 ### Port Conflicts
+
 - Development: API on 3000, MySQL on 3306
 - Testing: API on 3001, MySQL on 3307, Redis on 6380
 
 ### Migration Issues
+
 ```bash
 # Reset migrations (development only)
 make test-cleanup
@@ -143,8 +150,9 @@ make clean
 ```
 
 ### Docker Issues
+
 ```bash
 # Clean up everything
 docker system prune -f
 make clean
-``` 
+```
