@@ -5,6 +5,7 @@
 ### ⚠️ NEVER copy .env files into Docker images
 
 **Problem:** The original Dockerfile contained this vulnerable line:
+
 ```dockerfile
 COPY infra/scripts/.env* ./
 ```
@@ -14,6 +15,7 @@ This copies sensitive environment files directly into the Docker image, making s
 ### ✅ Recommended Approaches
 
 #### 1. Development Environment
+
 Use `env_file` in docker-compose.yml to load environment variables at runtime:
 
 ```yaml
@@ -27,6 +29,7 @@ services:
 ```
 
 #### 2. Production Environment
+
 Use Docker secrets for sensitive data:
 
 ```yaml
@@ -47,6 +50,7 @@ secrets:
 ```
 
 #### 3. Cloud Deployment
+
 - **AWS:** Use AWS Secrets Manager, Parameter Store, or IAM roles
 - **GCP:** Use Secret Manager or Workload Identity
 - **Azure:** Use Key Vault or Managed Identity
@@ -55,19 +59,21 @@ secrets:
 ### Security Hardening Applied
 
 #### Container Security
+
 - **Non-root user:** Application runs as user ID 1001
 - **Capability dropping:** Removes unnecessary Linux capabilities
 - **Read-only filesystem:** Consider enabling where possible
 - **Network isolation:** Uses custom networks
 
 #### Image Security
+
 - **Multi-stage builds:** Reduces final image size and attack surface
 - **Alpine base:** Smaller, more secure base image
 - **CA certificates:** Included for HTTPS communications
 
 ### File Structure for Secrets
 
-```
+```text
 infra/
 ├── secrets/           # Local development secrets (gitignored)
 │   ├── db_password.txt
@@ -123,6 +129,7 @@ jwtSecret := loadSecretFromFile("JWT_SECRET")
 ### Verification
 
 To verify secrets are not in your image:
+
 ```bash
 # Check image layers
 docker history your-image-name

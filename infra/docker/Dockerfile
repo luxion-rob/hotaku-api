@@ -10,8 +10,8 @@ RUN go build -o main .
 
 FROM alpine:3.19
 
-# Install ca-certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates
+# Install ca-certificates for HTTPS requests and envsubst for environment variable substitution
+RUN apk --no-cache add ca-certificates=20240111-r0 gettext=0.22.3-r0
 
 WORKDIR /app
 
@@ -20,6 +20,13 @@ RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
 COPY --from=builder /app/main .
+COPY .env.example .env
+
+# Create a script to handle environment variables
+RUN echo '#!/bin/sh\n\
+envsubst < .env > .env.processed\n\
+exec ./main' > /app/entrypoint.sh && \
+chmod +x /app/entrypoint.sh
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
@@ -28,5 +35,5 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 EXPOSE 3000
-
-CMD ["./main"] 
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://localhost:3000/health || exit 1
+CMD ["/app/entrypoint.sh"] 

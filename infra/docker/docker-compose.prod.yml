@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     build:
@@ -43,7 +41,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$(cat /run/secrets/db_password)"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$(cat /run/secrets/db_password)"]     
       interval: 10s
       timeout: 5s
       retries: 5
