@@ -8,7 +8,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var jwtSecret = func() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("JWT_SECRET environment variable is required")
+	}
+	if len(secret) < 32 {
+		panic("JWT_SECRET must be at least 32 characters long")
+	}
+	return []byte(secret)
+}()
 
 type Claims struct {
 	UserID uint   `json:"user_id"`
@@ -45,4 +54,4 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	}
 
 	return claims, nil
-} 
+}

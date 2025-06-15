@@ -55,16 +55,16 @@ wait_for_db() {
     attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if docker compose exec mysql mysqladmin ping -h"localhost" --silent; then
+        if docker compose -f ./docker/docker-compose.yml exec mysql mysqladmin ping -h"localhost" --silent; then
             print_status "Database is ready!"
             break
         fi
-        
+
         if [ $attempt -eq $max_attempts ]; then
             print_error "Database is not ready after $max_attempts attempts"
             exit 1
         fi
-        
+
         print_warning "Attempt $attempt/$max_attempts: Database not ready, waiting..."
         sleep 2
         ((attempt++))
@@ -76,7 +76,8 @@ migrate_up() {
     print_status "Running migrations up..."
     check_go
     wait_for_db
-    go run cmd/migrate/main.go -action=up
+    pwd
+    go run ../cmd/migrate/main.go -action=up
     print_status "Migrations completed!"
 }
 
@@ -86,7 +87,7 @@ migrate_down() {
     print_status "Rolling back $steps migration(s)..."
     check_go
     wait_for_db
-    go run cmd/migrate/main.go -action=down -steps=$steps
+    go run ../cmd/migrate/main.go -action=down -steps="$steps"
     print_status "Rollback completed!"
 }
 
