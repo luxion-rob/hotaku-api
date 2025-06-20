@@ -136,4 +136,4 @@ docker history your-image-name
 
 # Check for files in image
 docker run --rm your-image-name find / -name "*.env*" 2>/dev/null
-``` 
+```
