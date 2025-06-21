@@ -1,0 +1,73 @@
+name: Pull Request Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22.2'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Run go fmt check
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "❌ Code is not formatted. Run 'go fmt ./...' to fix:"
+          gofmt -s -l .
+          exit 1
+        fi
+        echo "✅ Code is properly formatted"
+
+    - name: Run tests
+      run: go test -v -race ./...
+
+    - name: Build check
+      run: go build -v .
+
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: PR Details
+      env: 
+        PR_TITLE: ${{ github.event.pull_request.title }}
+        PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        PR_BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        PR_COMMITS: ${{ github.event.pull_request.commits }}
+        PR_FILES_CHANGED: ${{ github.event.pull_request.changed_files }}
+        
+      run: |
+        echo "### 📋 Pull Request Information"
+        echo "- **Title:** $PR_TITLE"
+        echo "- **Author:** $PR_AUTHOR"
+        echo "- **Branch:** $PR_BRANCH → $PR_BASE_BRANCH"
+        echo "- **Commits:** $PR_COMMITS"
+        echo "- **Files Changed:** $PR_FILES_CHANGED" 
