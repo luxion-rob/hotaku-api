@@ -3,7 +3,6 @@ package migration
 import (
 	"fmt"
 	"hotaku-api/config"
-	"log"
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -54,7 +53,6 @@ func RunMigrations() error {
 		return fmt.Errorf("failed to run migrations: %v", err)
 	}
 
-	log.Println("Migrations completed successfully")
 	return nil
 }
 
@@ -69,6 +67,5 @@ func RollbackMigrations(steps int) error {
 		return fmt.Errorf("failed to rollback migrations: %v", err)
 	}
 
-	log.Printf("Rolled back %d migrations successfully", steps)
 	return nil
 }

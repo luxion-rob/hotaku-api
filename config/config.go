@@ -40,20 +40,20 @@ type AppConfig struct {
 func LoadConfig() *Config {
 	config := &Config{
 		Database: DatabaseConfig{
-			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnvAsInt("DB_PORT", 3306),
-			User:     getEnv("DB_USER", "root"),
-			Password: getEnv("DB_PASSWORD", "rootpassword"),
-			Name:     getEnv("DB_NAME", "hotaku_db"),
+			Host:     getEnv("DB_HOST", ""),
+			Port:     getEnvAsInt("DB_PORT", 0),
+			User:     getEnv("DB_USER", ""),
+			Password: getEnv("DB_PASSWORD", ""),
+			Name:     getEnv("DB_NAME", ""),
 		},
 		Server: ServerConfig{
-			Port:    getEnvAsInt("PORT", 3000),
-			GinMode: getEnv("GIN_MODE", "debug"),
+			Port:    getEnvAsInt("PORT", 0),
+			GinMode: getEnv("GIN_MODE", ""),
 		},
 		App: AppConfig{
-			Name:    getEnv("APP_NAME", "Hotaku API"),
-			Version: getEnv("APP_VERSION", "1.0.0"),
-			Env:     getEnv("APP_ENV", "development"),
+			Name:    getEnv("APP_NAME", ""),
+			Version: getEnv("APP_VERSION", ""),
+			Env:     getEnv("APP_ENV", ""),
 		},
 	}
 

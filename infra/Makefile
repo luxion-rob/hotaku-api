@@ -1,4 +1,4 @@
-.PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean test-local docker-prod-up generate-secrets
+.PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean test-local docker-prod-up generate-secrets create-env
 
 # Default target
 help:
@@ -81,18 +81,23 @@ generate-secrets:
 
 # Run database migrations
 migrate-up: .ensure-migrate-script
-	@./scripts/migrate.sh up
+	@bash scripts/migrate.sh up
 
 # Rollback database migrations
 migrate-down: .ensure-migrate-script
-	@./scripts/migrate.sh down
+	@bash scripts/migrate.sh down
 
 # Show migration status
 migrate-status: .ensure-migrate-script
-	@./scripts/migrate.sh status
+	@bash scripts/migrate.sh status
 
 .ensure-migrate-script:
-	@if [ ! -f scripts/migrate.sh ]; then echo "Error: scripts/migrate.sh not found"; exit 1; fi
+	@if [ ! -f scripts/migrate.sh ]; then \
+		echo "Error: scripts/migrate.sh not found in $(pwd)/scripts/"; \
+		echo "Current directory: $(pwd)"; \
+		echo "Available files in scripts/: $(ls -la scripts/ 2>/dev/null || echo 'scripts directory not found')"; \
+		exit 1; \
+	fi
 	@chmod +x scripts/migrate.sh
 
 # Clean up Docker containers and volumes
@@ -109,4 +114,4 @@ dev-setup: docker-up
 
 # Full development start
 dev: dev-setup
-	docker compose --env-file scripts/.env -f docker/docker-compose.yml logs -f api 
+	docker compose --env-file scripts/.env -f docker/docker-compose.yml logs -f api
