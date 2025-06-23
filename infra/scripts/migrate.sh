@@ -91,9 +91,6 @@ wait_for_db() {
         while [ $attempt -le $max_attempts ]; do
             if docker compose -f ./docker/docker-compose.yml exec mysql mysqladmin ping -h"localhost" --silent; then
                 print_status "Database is ready!"
-                # Update DB_HOST to use Docker service name
-                export DB_HOST="mysql"
-                print_status "Updated DB_HOST to 'mysql' for Docker environment"
                 break
             fi
 
@@ -116,10 +113,24 @@ wait_for_db() {
 # Run migrations up
 migrate_up() {
     print_status "Running migrations up..."
-    check_go
-    wait_for_db
-    load_env
-    go run ../cmd/migrate/main.go -action=up
+    
+    # Check if we're running in Docker environment
+    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
+        print_status "Docker MySQL container is running, running migrations inside Docker..."
+        check_go
+        load_env
+        wait_for_db
+        
+        # Run migration inside the API container
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=up
+    else
+        print_status "Docker MySQL container not running, running migrations locally..."
+        check_go
+        load_env
+        wait_for_db
+        go run ../cmd/migrate/main.go -action=up
+    fi
+    
     print_status "Migrations completed!"
 }
 
@@ -127,10 +138,24 @@ migrate_up() {
 migrate_down() {
     local steps=${1:-1}
     print_status "Rolling back $steps migration(s)..."
-    check_go
-    wait_for_db
-    load_env
+    
+    # Check if we're running in Docker environment
+    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
+        print_status "Docker MySQL container is running, running rollback inside Docker..."
+        check_go
+        wait_for_db
+        load_env
+        
+        # Run migration inside the API container
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=down -steps="$steps"
+    else
+        print_status "Docker MySQL container not running, running rollback locally..."
+        check_go
+        wait_for_db
+        load_env
     go run ../cmd/migrate/main.go -action=down -steps="$steps"
+    fi
+    
     print_status "Rollback completed! $steps"
 }
 

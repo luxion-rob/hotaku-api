@@ -32,7 +32,7 @@ func createDatabaseConnection() (*migrate.Migrate, error) {
 	}
 
 	// Point to the migrations/sql directory where SQL files are located
-	migrationsPath := fmt.Sprintf("file://%s/migrations/sql", wd)
+	migrationsPath := fmt.Sprintf("file://%s/infra/migrations/sql", wd)
 
 	// Create migrate instance
 	return migrate.NewWithDatabaseInstance(

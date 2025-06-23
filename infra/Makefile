@@ -1,4 +1,4 @@
-.PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean test-local docker-prod-up generate-secrets create-env
+.PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean test-local docker-prod-up generate-secrets create-env test-db fix-mysql-permissions setup-env-files
 
 # Default target
 help:
@@ -18,6 +18,8 @@ help:
 	@echo "  make migrate-status - Show migration status"
 	@echo "  make generate-secrets - Generate secure secrets for production"
 	@echo "  make clean          - Clean up Docker containers and volumes"
+	@echo "  make fix-mysql-permissions - Fix MySQL user permissions"
+	@echo "  make setup-env-files - Copy env.example to multiple directories"
 
 # Build the application
 build:
@@ -115,3 +117,11 @@ dev-setup: docker-up
 # Full development start
 dev: dev-setup
 	docker compose --env-file scripts/.env -f docker/docker-compose.yml logs -f api
+
+# Fix MySQL user permissions
+fix-mysql-permissions:
+	@bash scripts/fix-mysql-permissions.sh
+
+# Setup environment files
+setup-env-files:
+	@bash scripts/setup-env-files.sh
