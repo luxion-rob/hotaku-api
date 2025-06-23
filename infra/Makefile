@@ -43,7 +43,14 @@ test-coverage:
 test-local:
 	@export JWT_SECRET="test-super-secret-key-for-testing-that-is-at-least-32-characters-long" && \
 	export GIN_MODE="test" && \
-	cd .. && go test -v ./... || echo "⚠️ Some test packages may not exist yet"
+	cd .. && go test -v ./... 2>&1 | tee test_output.log || \
+		if grep -q "no packages to test" test_output.log; then \
+			echo "⚠️ Some test packages may not exist yet"; \
+		else \
+			echo "❌ Tests failed - check output above"; \
+			exit 1; \
+		fi; \
+		rm -f test_output.log
 
 # Format code
 fmt:
@@ -111,7 +118,10 @@ clean:
 # Development setup - start containers and run migrations
 dev-setup: docker-up
 	@echo "Waiting for containers to be ready..."
-	@sleep 10
+	@until docker compose --env-file scripts/.env -f docker/docker-compose.yml exec mysql mysqladmin ping -h"localhost" --silent; do \
+		echo "Waiting for database..."; \
+		sleep 2; \
+	done
 	@make migrate-up
 
 # Full development start
