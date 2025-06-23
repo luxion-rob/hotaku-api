@@ -21,6 +21,9 @@ func main() {
 		}
 
 	case "down":
+		if *steps <= 0 {
+			log.Fatalf("steps must be > 0 (got %d)", *steps)
+		}
 		if err := migration.RollbackMigrations(*steps); err != nil {
 			log.Fatal("Rollback failed:", err)
 		}
