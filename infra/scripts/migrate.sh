@@ -27,7 +27,6 @@ print_error() {
 load_env() {
     if [ -f .env ]; then
         print_status "Loading environment variables from .env file"
-        print_status "Current directory: $(pwd)"
         
         # Read .env file line by line and export variables safely
         while IFS= read -r line; do
@@ -40,17 +39,13 @@ load_env() {
             if [[ "$line" =~ ^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=[[:space:]]* ]]; then
                 # Remove leading/trailing whitespace and export
                 clean_line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                print_status "Loading: $clean_line"
                 export "$clean_line"
-            else
-                print_warning "Skipping malformed line: $line"
             fi
         done < .env
         
         print_status "Environment variables loaded successfully"
     else
-        print_warning "No .env file found in scripts directory"
-        print_status "Using system environment variables"
+        print_error "No .env file found in scripts directory"
     fi
 }
 
