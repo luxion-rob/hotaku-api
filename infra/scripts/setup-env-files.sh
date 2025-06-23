@@ -45,7 +45,7 @@ copy_env_file() {
     if [ -f "$target_file" ]; then
         print_warning "File $target_file already exists."
         while true; do
-            read -p "Do you want to overwrite it? (y/n): " yn
+            read -r -p "Do you want to overwrite it? (y/n): " yn
             case $yn in
                 [Yy]* ) 
                     print_status "Overwriting $target_file..."
