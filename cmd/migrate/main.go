@@ -7,6 +7,10 @@ import (
 	"os"
 )
 
+// main is the entry point for the migration command-line tool.
+// It parses command-line flags to determine whether to apply or roll back database migrations.
+// For the "down" action, it requires a positive number of steps to roll back.
+// Prints usage instructions and exits if an invalid action is provided.
 func main() {
 	var (
 		action = flag.String("action", "up", "Migration action: up, down")

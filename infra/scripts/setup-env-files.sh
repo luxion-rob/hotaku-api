@@ -9,16 +9,18 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m' # print_status prints an informational message in green with an [INFO] tag.
 
 print_status() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
 
+# print_warning prints a warning message to stdout with a yellow [WARNING] prefix.
 print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
+# print_error prints an error message prefixed with a red [ERROR] tag.
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
@@ -37,7 +39,7 @@ if [ ! -f "$SCRIPT_DIR/env.example" ]; then
     exit 1
 fi
 
-# Function to copy env.example to a directory with yes/no prompt
+# copy_env_file copies env.example from the script directory to a target directory as .env, prompting the user before overwriting if the file already exists.
 copy_env_file() {
     local target_dir="$1"
     local target_file="$target_dir/.env"

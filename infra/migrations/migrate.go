@@ -11,6 +11,9 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
+// createDatabaseConnection initializes and returns a migration instance configured for the MySQL database using the golang-migrate library.
+// It establishes a database connection, creates a migration driver, and sets the migration source path to the SQL files directory.
+// Returns a configured *migrate.Migrate instance or an error if any step fails.
 func createDatabaseConnection() (*migrate.Migrate, error) {
 	// Create database connection
 	config.ConnectDatabase()
@@ -43,6 +46,8 @@ func createDatabaseConnection() (*migrate.Migrate, error) {
 	)
 }
 
+// RunMigrations applies all pending database migrations using the configured migration source.
+// Returns an error if the migration process fails, except when there are no changes to apply.
 func RunMigrations() error {
 	m, err := createDatabaseConnection()
 	if err != nil {
@@ -67,6 +72,10 @@ func RunMigrations() error {
 	return nil
 }
 
+// RollbackMigrations rolls back the specified number of database migration steps.
+//
+// If no migrations are available to roll back, the function completes without error.
+// Returns an error if the rollback operation fails for reasons other than no change.
 func RollbackMigrations(steps int) error {
 	m, err := createDatabaseConnection()
 	if err != nil {

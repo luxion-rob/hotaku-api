@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AuthMiddleware returns a Gin middleware handler that authenticates requests using a Bearer token in the Authorization header.
+// If authentication succeeds, user ID and email from the token claims are set in the request context; otherwise, the request is aborted with a 401 Unauthorized response.
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

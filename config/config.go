@@ -36,7 +36,8 @@ type AppConfig struct {
 	Env     string
 }
 
-// LoadConfig loads configuration from environment variables with defaults
+// LoadConfig initializes and returns a Config struct populated from environment variables, applying default values where necessary.
+// The configuration is validated before being returned; the application will terminate if validation fails.
 func LoadConfig() *Config {
 	config := &Config{
 		Database: DatabaseConfig{
@@ -79,7 +80,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-// getEnv gets environment variable with fallback to default value
+// getEnv returns the value of the specified environment variable, or the provided default if the variable is unset or empty.
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -87,7 +88,7 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-// getEnvAsInt gets environment variable as integer with fallback to default value
+// getEnvAsInt retrieves the value of an environment variable as an integer, returning the default value if unset or invalid.
 func getEnvAsInt(key string, defaultValue int) int {
 	if value := os.Getenv(key); value != "" {
 		if intValue, err := strconv.Atoi(value); err == nil {

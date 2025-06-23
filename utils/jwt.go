@@ -25,6 +25,8 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// GenerateToken creates a signed JWT containing the user's ID and email, valid for 24 hours.
+// Returns the signed token string or an error if signing fails.
 func GenerateToken(userID uint, email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
@@ -39,6 +41,8 @@ func GenerateToken(userID uint, email string) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
+// ValidateToken parses and validates a JWT token string and returns the associated claims.
+// Returns an error if the token is invalid or cannot be parsed.
 func ValidateToken(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {

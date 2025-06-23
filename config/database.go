@@ -10,6 +10,8 @@ import (
 
 var DB *gorm.DB
 
+// ConnectDatabase establishes a connection to the MySQL database using configuration parameters and assigns the connection to the global DB variable.
+// The function terminates the program if the connection cannot be established.
 func ConnectDatabase() {
 	// Load configuration
 	config := LoadConfig()

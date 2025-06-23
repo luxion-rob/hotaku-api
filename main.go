@@ -11,6 +11,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// main is the entry point for the web server application.
+// It loads environment variables, initializes configuration, sets up the Gin framework and database connection, defines a health check endpoint, and starts the HTTP server.
 func main() {
 	// Load .env file if it exists (for local development)
 	if err := godotenv.Load(); err != nil {

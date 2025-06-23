@@ -75,7 +75,7 @@ type PaginatedResponse struct {
 	Meta PaginationMeta `json:"meta"`
 }
 
-// NewSuccessResponse creates a new success response
+// NewSuccessResponse returns a BaseResponse indicating a successful operation with the provided message and data. The response includes the current Unix timestamp.
 func NewSuccessResponse(message string, data interface{}) *BaseResponse {
 	return &BaseResponse{
 		Success:   true,
@@ -85,7 +85,7 @@ func NewSuccessResponse(message string, data interface{}) *BaseResponse {
 	}
 }
 
-// NewErrorResponse creates a new error response
+// NewErrorResponse returns a BaseResponse representing an error, with the provided message, error details, and the current timestamp.
 func NewErrorResponse(message string, err interface{}) *BaseResponse {
 	return &BaseResponse{
 		Success:   false,
@@ -95,7 +95,7 @@ func NewErrorResponse(message string, err interface{}) *BaseResponse {
 	}
 }
 
-// NewAuthResponse creates a new authentication response
+// NewAuthResponse returns an AuthResponse indicating successful authentication, including a message, token, user data, and the current timestamp.
 func NewAuthResponse(message, token string, user *UserData) *AuthResponse {
 	return &AuthResponse{
 		BaseResponse: BaseResponse{
@@ -108,7 +108,7 @@ func NewAuthResponse(message, token string, user *UserData) *AuthResponse {
 	}
 }
 
-// NewUserResponse creates a new user response
+// NewUserResponse returns a UserResponse indicating success, containing a message and user data with the current timestamp.
 func NewUserResponse(message string, user *UserData) *UserResponse {
 	return &UserResponse{
 		BaseResponse: BaseResponse{
@@ -120,7 +120,7 @@ func NewUserResponse(message string, user *UserData) *UserResponse {
 	}
 }
 
-// NewValidationErrorResponse creates a new validation error response
+// NewValidationErrorResponse returns an ErrorResponse representing a failed operation with validation error details and a timestamp.
 func NewValidationErrorResponse(message string, errors []ValidationError) *ErrorResponse {
 	return &ErrorResponse{
 		BaseResponse: BaseResponse{
@@ -132,7 +132,7 @@ func NewValidationErrorResponse(message string, errors []ValidationError) *Error
 	}
 }
 
-// NewHealthResponse creates a new health response
+// NewHealthResponse returns a HealthResponse indicating the API's health status, including a version string from the APP_VERSION environment variable or a default value.
 func NewHealthResponse() *HealthResponse {
 	var version string
 	if version = os.Getenv("APP_VERSION"); version == "" {

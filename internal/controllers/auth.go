@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Register handles user registration by validating input, creating a new user, and returning an authentication token upon success.
 func Register(c *gin.Context) {
 	var req interfaces.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -77,6 +78,7 @@ func Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+// Login authenticates a user with email and password, returning an authentication token and user profile data on success.
 func Login(c *gin.Context) {
 	var req interfaces.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -129,6 +131,8 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// Profile retrieves the authenticated user's profile and returns it as a JSON response.
+// If the user does not exist, responds with a 404 error.
 func Profile(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
@@ -151,6 +155,8 @@ func Profile(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// UpdateProfile updates the authenticated user's profile information, including name and email, if provided.
+// Returns a JSON response with the updated profile data or an error message if validation fails, the user is not found, the email is already taken, or a database error occurs.
 func UpdateProfile(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
