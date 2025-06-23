@@ -3,6 +3,7 @@ package migration
 import (
 	"fmt"
 	"hotaku-api/config"
+	"log"
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -48,6 +49,16 @@ func RunMigrations() error {
 		return fmt.Errorf("failed to create database connection: %v", err)
 	}
 
+	defer func() {
+		serr, dberr := m.Close()
+		if serr != nil {
+			log.Printf("Warning: failed to close migration instance: %v", serr)
+		}
+		if dberr != nil {
+			log.Printf("Warning: failed to close database connection: %v", dberr)
+		}
+	}()
+
 	// Run migrations
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("failed to run migrations: %v", err)
@@ -61,6 +72,16 @@ func RollbackMigrations(steps int) error {
 	if err != nil {
 		return fmt.Errorf("failed to create database connection: %v", err)
 	}
+
+	defer func() {
+		serr, dberr := m.Close()
+		if serr != nil {
+			log.Printf("Warning: failed to close migration instance: %v", serr)
+		}
+		if dberr != nil {
+			log.Printf("Warning: failed to close database connection: %v", dberr)
+		}
+	}()
 
 	// Rollback migrations
 	if err := m.Steps(-steps); err != nil && err != migrate.ErrNoChange {
