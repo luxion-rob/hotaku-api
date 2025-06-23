@@ -39,7 +39,7 @@ load_env() {
             if [[ "$line" =~ ^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=[[:space:]]* ]]; then
                 # Remove leading/trailing whitespace and export
                 clean_line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                export "$clean_line"
+                eval "export $clean_line"
             fi
         done < .env
         
