@@ -1,0 +1,80 @@
+services:
+  api:
+    build:
+      context: ../../
+      dockerfile: infra/docker/Dockerfile
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - GIN_MODE=release
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=hotaku
+      - DB_NAME=hotaku_db
+      # These will be read from Docker secrets
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+    secrets:
+      - db_password
+      - jwt_secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    # Security hardening
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=hotaku_db
+      - MYSQL_USER=hotaku
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$(cat /run/secrets/db_password)"]     
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    # Security hardening
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    restart: unless-stopped
+    networks:
+      - app-network
+
+secrets:
+  db_password:
+    # In production, use external secrets
+    # external: true
+    # For development, you can use files:
+    file: ../secrets/db_password.txt
+  jwt_secret:
+    # In production, use external secrets
+    # external: true
+    # For development, you can use files:
+    file: ../secrets/jwt_secret.txt
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
+ 

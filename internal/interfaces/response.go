@@ -1,6 +1,9 @@
 package interfaces
 
-import "time"
+import (
+	"os"
+	"time"
+)
 
 // APIResponse defines the interface for all API responses
 type APIResponse interface {
@@ -131,11 +134,16 @@ func NewValidationErrorResponse(message string, errors []ValidationError) *Error
 
 // NewHealthResponse creates a new health response
 func NewHealthResponse() *HealthResponse {
+	var version string
+	if version = os.Getenv("APP_VERSION"); version == "" {
+		version = "1.0.0"
+	}
+
 	return &HealthResponse{
 		Status:    "healthy",
 		Message:   "API is running smoothly",
 		Timestamp: time.Now().Unix(),
-		Version:   "1.0.0",
+		Version:   version,
 	}
 }
 
@@ -150,4 +158,4 @@ func (r *BaseResponse) GetStatus() int {
 // GetMessage implements APIResponse interface
 func (r *BaseResponse) GetMessage() string {
 	return r.Message
-} 
+}
