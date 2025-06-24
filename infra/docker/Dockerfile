@@ -6,7 +6,13 @@ COPY go.* ./
 RUN go mod download
 
 ARG AIR_VERSION=v1.62.0
-RUN go install github.com/air-verse/air@${AIR_VERSION}
+RUN set -eu; \
+    url="https://github.com/cosmtrek/air/releases/download/${AIR_VERSION}/air_${AIR_VERSION#v}_linux_amd64.tar.gz"; \
+    sha256="3322883bd2c12c56ac7df605bd4ad9d9f99ca71c8e8d3024a73c28d47a365491"; \
+    wget -qO /tmp/air.tgz "${url}" && \
+    echo "${sha256}  /tmp/air.tgz" | sha256sum -c - && \
+    tar -C /usr/local/bin -xzf /tmp/air.tgz air && \
+    rm /tmp/air.tgz
 
 COPY . .
 RUN go build -o main .
@@ -22,7 +28,6 @@ WORKDIR /app
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
-# COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /app/main .
 COPY .env.example .env
 
@@ -31,6 +36,7 @@ RUN cat <<'EOF' > /app/entrypoint.sh
 #!/bin/sh
 set -euo pipefail
 envsubst < .env > .env.processed
+test -f .env.processed
 exec ./main
 EOF
 RUN chmod +x /app/entrypoint.sh
