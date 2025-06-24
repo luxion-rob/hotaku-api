@@ -1,5 +1,8 @@
 CREATE TABLE `roles` (
-        role_id INT NOT NULL AUTO_INCREMENT,
-        role_name VARCHAR(100) NOT NULL,
-        primary KEY (role_id)
-    );
+    role_id INT NOT NULL AUTO_INCREMENT,
+    role_name VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    primary KEY (role_id)
+);
+CREATE INDEX idx_roles_name ON `roles` (role_name);
