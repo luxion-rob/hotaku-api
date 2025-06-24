@@ -31,16 +31,6 @@ RUN addgroup -g 1001 -S appgroup && \
 COPY --from=builder /app/main .
 COPY .env.example .env
 
-# Create a script to handle environment variables
-RUN cat <<'EOF' > /app/entrypoint.sh
-#!/bin/sh
-set -euo pipefail
-envsubst < .env > .env.processed
-test -f .env.processed
-exec ./main
-EOF
-RUN chmod +x /app/entrypoint.sh
-
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
 
