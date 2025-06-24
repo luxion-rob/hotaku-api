@@ -5,6 +5,8 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 
+RUN go install github.com/air-verse/air@latest
+
 COPY . .
 RUN go build -o main .
 
@@ -19,14 +21,15 @@ WORKDIR /app
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
+COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /app/main .
 COPY .env.example .env
 
 # Create a script to handle environment variables
 RUN echo '#!/bin/sh\n\
-envsubst < .env > .env.processed\n\
-exec ./main' > /app/entrypoint.sh && \
-chmod +x /app/entrypoint.sh
+    envsubst < .env > .env.processed\n\
+    exec ./main' > /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
