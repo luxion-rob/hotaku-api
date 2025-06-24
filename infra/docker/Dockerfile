@@ -22,14 +22,14 @@ WORKDIR /app
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
-COPY --from=builder /go/bin/air /usr/local/bin/air
+# COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /app/main .
 COPY .env.example .env
 
 # Create a script to handle environment variables
 RUN cat <<'EOF' > /app/entrypoint.sh
 #!/bin/sh
-set -eu
+set -euo pipefail
 envsubst < .env > .env.processed
 exec ./main
 EOF
