@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, infra/github-page-artifact]
   pull_request:
     branches: [main]
 
@@ -162,10 +162,10 @@ jobs:
   #     uses: actions/checkout@v4
   #
   #   - name: Set up Docker Buildx
-  #     uses: docker/setup-buildx-action@v3
+  #     uses: docker/setup-buildx-action@v4
   #
   #   - name: Log in to GitHub Container Registry
-  #     uses: docker/login-action@v3
+  #     uses: docker/login-action@v4
   #     with:
   #       registry: ghcr.io
   #       username: ${{ github.actor }}
@@ -197,7 +197,7 @@ jobs:
     name: Build Documentation
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/infra/github-page-artifact'
 
     steps:
       - name: Checkout code
@@ -210,34 +210,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npx @apidevtools/swagger-parser ...
-          npx redoc-cli ...
+          cd openapi
+          npm ci
 
       - name: Generate API documentation
         run: |
-          mkdir -p docs
-          echo "# Hotaku API Documentation" > docs/index.md
-          echo "" >> docs/index.md
-          echo "## Overview" >> docs/index.md
-          echo "Welcome to the Hotaku API documentation. This API is built with Go and Gin framework." >> docs/index.md
-          echo "" >> docs/index.md
-          echo "## Endpoints" >> docs/index.md
-          echo "" >> docs/index.md
-          echo "### Health Check" >> docs/index.md
-          echo "- **GET** \`/\` - Returns API health status" >> docs/index.md
-          echo "" >> docs/index.md
-          echo "## Response Format" >> docs/index.md
-          echo "" >> docs/index.md
-          echo "All responses follow this structure:" >> docs/index.md
-          echo "" >> docs/index.md
-          echo "\`\`\`json" >> docs/index.md
-          echo "{" >> docs/index.md
-          echo "  \"status\": \"healthy\"," >> docs/index.md
-          echo "  \"message\": \"API is running smoothly\"," >> docs/index.md
-          echo "  \"timestamp\": 1640995200," >> docs/index.md
-          echo "  \"version\": \"1.0.0\"" >> docs/index.md
-          echo "}" >> docs/index.md
-          echo "\`\`\`" >> docs/index.md
+          cd openapi
+          npm run docs:api
 
       # TODO: Coverage report download temporarily disabled
       # - name: Download coverage report
@@ -248,10 +227,20 @@ jobs:
 
       - name: Generate HTML documentation
         run: |
-          cat > docs/_config.yml << EOF
+          cd openapi
+          npm run docs:generate
+          
+          # Create the openapi directory structure
+          mkdir -p dist/openapi
+          cp dist/index.html dist/openapi/
+          
+          # Create Jekyll configuration for GitHub Pages
+          cat > dist/_config.yml << EOF
           theme: jekyll-theme-minimal
           title: Hotaku API
           description: Go Gin REST API Documentation
+          baseurl: ""
+          url: "https://${{ github.repository_owner }}.github.io"
           plugins:
             - jekyll-relative-links
           relative_links:
@@ -263,35 +252,112 @@ jobs:
             - LICENSE.md
             - COPYING.md
             - CODE_OF_CONDUCT.md
-            - CONTRIBUTING.md
             - ISSUE_TEMPLATE.md
             - PULL_REQUEST_TEMPLATE.md
           EOF
+          
+          # Create a simple index.html that redirects to the openapi docs
+          cat > dist/index.html << EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Hotaku API</title>
+              <style>
+                  body { 
+                      font-family: Arial, sans-serif; 
+                      text-align: center; 
+                      padding: 50px; 
+                      background-color: #f5f5f5;
+                      margin: 0;
+                  }
+                  .container {
+                      max-width: 600px;
+                      margin: 0 auto;
+                      background: white;
+                      padding: 40px;
+                      border-radius: 8px;
+                      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                  }
+                  h1 { 
+                      color: #333; 
+                      margin-bottom: 20px;
+                  }
+                  .loading { 
+                      color: #666; 
+                      margin-bottom: 20px;
+                  }
+                  .link {
+                      display: inline-block;
+                      background: #007bff;
+                      color: white;
+                      padding: 12px 24px;
+                      text-decoration: none;
+                      border-radius: 4px;
+                      margin-top: 20px;
+                  }
+                  .link:hover {
+                      background: #0056b3;
+                  }
+                  .url {
+                      background: #f8f9fa;
+                      padding: 10px;
+                      border-radius: 4px;
+                      font-family: monospace;
+                      margin: 20px 0;
+                      color: #495057;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>Hotaku API</h1>
+                  <p class="loading">Redirecting to API documentation...</p>
+                  <div class="url">https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/openapi/</div>
+                  <p>If you are not redirected automatically, click the button below:</p>
+                  <a href="./openapi/" class="link">View API Documentation</a>
+              </div>
+          </body>
+          </html>
+          EOF
 
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v2
+          ls -R
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
         with:
-          path: docs/
+          source: ./openapi
+          destination: ./_site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: openapi/dist
 
   # Deploy to GitHub Pages
   deploy-pages:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: docs
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/infra/github-page-artifact'
 
     permissions:
       pages: write
       id-token: write
 
     environment:
-      name: env-github-pages
+      name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
+      - name: Debug
+        run: |
+          ls -la
 
   # Notification Job
   notify:

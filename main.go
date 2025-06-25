@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"hotaku-api/config"
-	"hotaku-api/internal/interfaces"
+	"hotaku-api/internal/controllers"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -29,10 +28,7 @@ func main() {
 	r := gin.Default()
 
 	// Health check endpoint
-	r.GET("/health", func(c *gin.Context) {
-		response := interfaces.NewHealthResponse()
-		c.JSON(http.StatusOK, response)
-	})
+	r.GET("/health", controllers.HealthCheck)
 
 	serverAddr := fmt.Sprintf(":%d", appConfig.Server.Port)
 	log.Printf(
