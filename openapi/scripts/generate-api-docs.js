@@ -99,11 +99,6 @@ const openApiSpec = {
         summary: 'User Login',
         description: 'Authenticate user and return JWT token',
         tags: ['Authentication'],
-        security: [
-          {
-            bearerAuth: []
-          }
-        ],
         requestBody: {
           required: true,
           content: {
@@ -196,11 +191,6 @@ const openApiSpec = {
         summary: 'User Registration',
         description: 'Register a new user account',
         tags: ['Authentication'],
-        security: [
-          {
-            bearerAuth: []
-          }
-        ],
         requestBody: {
           required: true,
           content: {
