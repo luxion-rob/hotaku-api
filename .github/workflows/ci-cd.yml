@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop, infra/github-page-artifact]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, ci-cd]
 
 env:
   GO_VERSION: "1.22.2"
@@ -197,7 +197,7 @@ jobs:
     name: Build Documentation
     runs-on: ubuntu-latest
     needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/infra/github-page-artifact'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ci-cd'
 
     steps:
       - name: Checkout code
