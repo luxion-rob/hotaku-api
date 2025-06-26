@@ -367,4 +367,4 @@ console.log(`✅ OpenAPI specification generated at: ${outputPath}`);
 const jsonOutputPath = path.join(distDir, 'openapi.json');
 fs.writeFileSync(jsonOutputPath, JSON.stringify(openApiSpec, null, 2));
 
-console.log(`✅ OpenAPI JSON specification generated at: ${jsonOutputPath}`); 
+console.log(`✅ OpenAPI JSON specification generated at: ${jsonOutputPath}`);
