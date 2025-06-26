@@ -5,6 +5,15 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 
+ARG AIR_VERSION=v1.62.0
+RUN set -eu; \
+    url="https://github.com/cosmtrek/air/releases/download/${AIR_VERSION}/air_${AIR_VERSION#v}_linux_amd64.tar.gz"; \
+    sha256="3322883bd2c12c56ac7df605bd4ad9d9f99ca71c8e8d3024a73c28d47a365491"; \
+    wget -qO /tmp/air.tgz "${url}" && \
+    echo "${sha256}  /tmp/air.tgz" | sha256sum -c - && \
+    tar -C /usr/local/bin -xzf /tmp/air.tgz air && \
+    rm /tmp/air.tgz
+
 COPY . .
 RUN go build -o main .
 
@@ -21,12 +30,6 @@ RUN addgroup -g 1001 -S appgroup && \
 
 COPY --from=builder /app/main .
 COPY .env.example .env
-
-# Create a script to handle environment variables
-RUN echo '#!/bin/sh\n\
-envsubst < .env > .env.processed\n\
-exec ./main' > /app/entrypoint.sh && \
-chmod +x /app/entrypoint.sh
 
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
