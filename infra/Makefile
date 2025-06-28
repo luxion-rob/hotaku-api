@@ -1,86 +1,37 @@
 .PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean test-local docker-prod-up generate-secrets create-env test-db fix-mysql-permissions setup-env-files
 
 # Default target
-help:
-	@echo "Available commands:"
-	@echo "  make build          - Build the application"
-	@echo "  make run            - Run the application locally"
-	@echo "  make test           - Run tests"
-	@echo "  make test-coverage  - Run tests with coverage"
-	@echo "  make test-local     - Run all local tests (no Docker)"
-	@echo "  make fmt            - Format code"
-	@echo "  make lint           - Run linter"
-	@echo "  make docker-up      - Start Docker containers (development)"
-	@echo "  make docker-prod-up - Start Docker containers (production)"
-	@echo "  make docker-down    - Stop Docker containers"
-	@echo "  make migrate-up     - Run database migrations"
-	@echo "  make migrate-down   - Rollback 1 migration"
-	@echo "  make migrate-status - Show migration status"
-	@echo "  make generate-secrets - Generate secure secrets for production"
-	@echo "  make clean          - Clean up Docker containers and volumes"
-	@echo "  make fix-mysql-permissions - Fix MySQL user permissions"
-	@echo "  make setup-env-files - Copy env.example to multiple directories"
-
-# Build the application
-build:
-	cd .. && go build -o bin/hotaku-api main.go
-
-# Run the application locally (requires local database)
-run:
-	cd .. && go run main.go
-
-# Run tests
-test:
-	cd .. && go test -v -race ./utils ./internal/...
-
-# Run tests with coverage
-test-coverage:
-	cd .. && go test -v -race -coverprofile=coverage.out ./utils ./internal/...
-	cd .. && go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
-
-# Run all local tests (without Docker)
-test-local:
-	@export JWT_SECRET="test-super-secret-key-for-testing-that-is-at-least-32-characters-long" && \
-	export GIN_MODE="test" && \
-	cd .. && go test -v ./... 2>&1 | tee test_output.log || \
-		if grep -q "no packages to test" test_output.log; then \
-			echo "⚠️ Some test packages may not exist yet"; \
-		else \
-			echo "❌ Tests failed - check output above"; \
-			exit 1; \
-		fi; \
-		rm -f test_output.log
-
-# Format code
-fmt:
-	cd .. && go fmt ./...
-
-# Run linter
-lint:
-	cd .. && go vet ./...
+help: ## 🚀 Show this help message
+	@echo "🚀 Hotaku API - Development Commands"
+	@echo "====================================="
+	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "💡 Quick Start:"
+	@echo "  1. make setup-env-files    # Setup environment files"
+	@echo "  2. make dev               # Start full development environment"
+	@echo "  3. make test              # Run tests"
+	@echo ""
+	@echo "📝 For more details, check the README.md file"
 
 # Start Docker containers (development)
-docker-up:
-	docker compose --env-file scripts/.env -f docker/docker-compose.yml up -d
+docker-up: ## 🐳 Start development containers
+	docker compose -f docker/docker-compose.yml up -d
 
 # Start Docker containers (production with secrets)
-docker-prod-up: .ensure-secrets
+docker-prod-up: .ensure-secrets ## 🐳 Start production containers (requires secrets)
 	docker compose -f docker/docker-compose.prod.yml up -d
 
 # Stop Docker containers
-docker-down:
-	docker compose --env-file scripts/.env -f docker/docker-compose.yml down
+docker-down: ## 🐳 Stop all containers
+	docker compose -f docker/docker-compose.yml down
 	docker compose -f docker/docker-compose.prod.yml down
 
 # Generate secure secrets for production
-generate-secrets:
+generate-secrets: ## 🔐 Generate secure secrets for production
 	@mkdir -p secrets
-	@echo "Generating secure secrets..."
 	@openssl rand -base64 32 > secrets/db_password.txt
 	@openssl rand -base64 64 > secrets/jwt_secret.txt
-	@echo "✅ Secrets generated in secrets/ directory"
-	@echo "⚠️  Please secure these files and do not commit them to version control"
 
 .ensure-secrets:
 	@if [ ! -f secrets/db_password.txt ] || [ ! -f secrets/jwt_secret.txt ]; then \
@@ -89,49 +40,30 @@ generate-secrets:
 	fi
 
 # Run database migrations
-migrate-up: .ensure-migrate-script
+migrate-up: .ensure-migrate-script ## 🗄️ Run database migrations
 	@bash scripts/migrate.sh up
 
 # Rollback database migrations
-migrate-down: .ensure-migrate-script
+migrate-down: .ensure-migrate-script ## 🗄️ Rollback last migration
 	@bash scripts/migrate.sh down
 
 # Show migration status
-migrate-status: .ensure-migrate-script
+migrate-status: .ensure-migrate-script ## 🗄️ Show migration status
 	@bash scripts/migrate.sh status
 
 .ensure-migrate-script:
-	@if [ ! -f scripts/migrate.sh ]; then \
-		echo "Error: scripts/migrate.sh not found in $(pwd)/scripts/"; \
-		echo "Current directory: $(pwd)"; \
-		echo "Available files in scripts/: $(ls -la scripts/ 2>/dev/null || echo 'scripts directory not found')"; \
-		exit 1; \
-	fi
 	@chmod +x scripts/migrate.sh
 
 # Clean up Docker containers and volumes
-clean:
-	docker compose --env-file scripts/.env -f docker/docker-compose.yml down -v
+clean: ## 🧹 Clean up containers, volumes, and Docker cache
+	docker compose -f docker/docker-compose.yml down -v
 	docker compose -f docker/docker-compose.prod.yml down -v
 	docker system prune -f
 
 # Development setup - start containers and run migrations
-dev-setup: docker-up
-	@echo "Waiting for containers to be ready..."
-	@until docker compose --env-file scripts/.env -f docker/docker-compose.yml exec mysql mysqladmin ping -h"localhost" --silent; do \
-		echo "Waiting for database..."; \
-		sleep 2; \
-	done
+dev-setup: docker-up ## 🛠️ Setup development environment (Docker + DB + Migrations)
 	@make migrate-up
 
-# Full development start
-dev: dev-setup
-	docker compose --env-file scripts/.env -f docker/docker-compose.yml logs -f api
-
-# Fix MySQL user permissions
-fix-mysql-permissions:
-	@bash scripts/fix-mysql-permissions.sh
-
 # Setup environment files
-setup-env-files:
+setup-env-files: ## 🔧 Copy environment files to required locations
 	@bash scripts/setup-env-files.sh

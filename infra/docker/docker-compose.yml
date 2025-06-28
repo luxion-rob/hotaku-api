@@ -3,13 +3,11 @@ services:
     build:
       context: ../../
       dockerfile: infra/docker/Dockerfile
-      target: builder
     ports:
       - "${APP_PORT:-3000}:3000"
     volumes:
       - ../../:/app
     working_dir: /app
-    command: air -c infra/config/.air.toml
     env_file:
       - .env
     environment:
