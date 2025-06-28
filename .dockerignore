@@ -57,9 +57,6 @@ temp/
 # Node modules (if any)
 node_modules/
 
-# Air temporary files
-tmp/
-
 # Secrets (should never be copied)
 secrets/
 *.key
