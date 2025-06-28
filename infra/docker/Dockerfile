@@ -26,10 +26,8 @@ COPY main.go ./
 COPY infra/config/.air.toml ./infra/config/.air.toml
 
 # Create non-root user for security
-RUN adduser -D -s /bin/sh -u 1001 appuser
-
-# Change ownership of application files to non-root user
-RUN chown -R appuser:appuser /app
+RUN adduser -D -s /bin/sh -u 1001 appuser && \
+    chown -R appuser:appuser /app
 
 # Expose the app port
 EXPOSE 3000
