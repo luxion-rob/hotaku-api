@@ -1,11 +1,10 @@
 CREATE TABLE authors (
-    author_id INT NOT NULL AUTO_INCREMENT,
-    external_id CHAR(36) NOT NULL UNIQUE,
-    author_name VARCHAR(255),
+    author_id VARCHAR(36) NOT NULL UNIQUE,
+    external_id VARCHAR(36) NOT NULL UNIQUE,
+    author_name VARCHAR(50) NOT NULL,
     author_bio TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE,
-    deleted_at TIMESTAMP,
-    PRIMARY KEY (author_id)
+    PRIMARY KEY (author_id),
+    UNIQUE KEY uq_authors_name (author_name)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

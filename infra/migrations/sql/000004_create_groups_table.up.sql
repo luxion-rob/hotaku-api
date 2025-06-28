@@ -1,10 +1,9 @@
 CREATE TABLE `groups` (
-    group_id INT NOT NULL AUTO_INCREMENT,
-    external_id CHAR(36) NOT NULL UNIQUE,
-    group_name VARCHAR(255),
+    group_id VARCHAR(36) NOT NULL UNIQUE,
+    external_id VARCHAR(36) NOT NULL UNIQUE,
+    group_name VARCHAR(255) NOT NULL UNIQUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_flag BOOLEAN NOT NULL DEFAULT FALSE,
-    deleted_at TIMESTAMP,
-    PRIMARY KEY (group_id)
+    PRIMARY KEY (group_id),
+    UNIQUE KEY uq_groups_name (group_name)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

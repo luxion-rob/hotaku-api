@@ -1,5 +1,5 @@
 CREATE TABLE roles (
-    role_id INT NOT NULL AUTO_INCREMENT,
+    role_id VARCHAR(36) NOT NULL UNIQUE,
     role_name VARCHAR(100) NOT NULL UNIQUE,
     PRIMARY KEY (role_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
