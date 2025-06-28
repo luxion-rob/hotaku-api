@@ -29,6 +29,7 @@ tmp
 .env.development
 .env.test
 .env.production
+*.log
 
 # Security: Secrets and sensitive files
 infra/secrets/*.txt
@@ -47,3 +48,7 @@ infra/secrets/*.jks
 # Coverage reports
 coverage.out
 coverage.html
+
+# OpenAPI
+openapi/node_modules
+openapi/dist

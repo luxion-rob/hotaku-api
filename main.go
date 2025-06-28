@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"hotaku-api/config"
-	"hotaku-api/internal/interfaces"
+	"hotaku-api/internal/server"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -23,27 +21,11 @@ func main() {
 	// Set Gin mode
 	gin.SetMode(appConfig.Server.GinMode)
 
-	// Connect to database
-	config.ConnectDatabase()
+	// Initialize server with all dependencies
+	srv := server.InitializeServer()
 
-	r := gin.Default()
-
-	// Health check endpoint
-	r.GET("/health", func(c *gin.Context) {
-		response := interfaces.NewHealthResponse()
-		c.JSON(http.StatusOK, response)
-	})
-
-	serverAddr := fmt.Sprintf(":%d", appConfig.Server.Port)
-	log.Printf(
-		"Starting %s v%s on port %d in %s mode\n",
-		appConfig.App.Name,
-		appConfig.App.Version,
-		appConfig.Server.Port,
-		appConfig.App.Env,
-	)
-
-	if err := r.Run(serverAddr); err != nil {
-		panic(fmt.Sprintf("Failed to start server: %v", err))
+	if err := srv.Run(appConfig.Server.Port); err != nil {
+		log.Printf("Failed to start server: %v", err)
+		panic("Failed to start server: " + err.Error())
 	}
 }

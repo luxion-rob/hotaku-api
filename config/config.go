@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -65,16 +65,16 @@ func LoadConfig() *Config {
 	return config
 }
 
-// ValidateConfig validates the loaded configuration
+// Validate validates the loaded configuration
 func (c *Config) Validate() error {
 	if c.Database.Host == "" {
-		return errors.New("database host is required")
+		return fmt.Errorf("database host is required (DB_HOST)")
 	}
 	if c.Database.Port < 1 || c.Database.Port > 65535 {
-		return errors.New("database port must be between 1 and 65535")
+		return fmt.Errorf("database port must be between 1 and 65535 (DB_PORT)")
 	}
 	if c.Server.Port < 1 || c.Server.Port > 65535 {
-		return errors.New("server port must be between 1 and 65535")
+		return fmt.Errorf("server port must be between 1 and 65535 (PORT)")
 	}
 	return nil
 }

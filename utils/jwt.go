@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -50,7 +50,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	}
 
 	if !token.Valid {
-		return nil, errors.New("invalid token")
+		return nil, fmt.Errorf("token is invalid or expired")
 	}
 
 	return claims, nil
