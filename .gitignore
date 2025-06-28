@@ -1,5 +1,7 @@
 # Build folder
 bin
+node_modules
+openapi/dist
 
 # Binaries for programs and plugins
 *.exe
