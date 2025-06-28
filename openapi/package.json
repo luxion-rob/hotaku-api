@@ -1,0 +1,23 @@
+{
+  "name": "hotaku-api",
+  "version": "1.0.0",
+  "description": "Go Gin REST API with documentation tools",
+  "scripts": {
+    "docs:generate": "node scripts/generate-api-docs.js && npx @redocly/cli build-docs ./dist/openapi.yaml -o ./dist/index.html",
+    "docs:validate": "npx @redocly/cli lint ./dist/openapi.yaml",
+    "docs:api": "node scripts/generate-api-docs.js"
+  },
+  "devDependencies": {
+    "@redocly/cli": "1.34.3",
+    "js-yaml": "4.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luxion-rob/hotaku-api.git"
+  },
+  "private": true
+}
