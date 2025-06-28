@@ -1,42 +1,22 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-alpine
 
 WORKDIR /app
 
-COPY go.* ./
-RUN go mod download
-
+# Install Air
 ARG AIR_VERSION=v1.62.0
-RUN set -eu; \
-    url="https://github.com/cosmtrek/air/releases/download/${AIR_VERSION}/air_${AIR_VERSION#v}_linux_amd64.tar.gz"; \
-    sha256="3322883bd2c12c56ac7df605bd4ad9d9f99ca71c8e8d3024a73c28d47a365491"; \
-    wget -qO /tmp/air.tgz "${url}" && \
-    echo "${sha256}  /tmp/air.tgz" | sha256sum -c - && \
+RUN wget -qO /tmp/air.tgz "https://github.com/cosmtrek/air/releases/download/${AIR_VERSION}/air_${AIR_VERSION#v}_linux_amd64.tar.gz" && \
     tar -C /usr/local/bin -xzf /tmp/air.tgz air && \
     rm /tmp/air.tgz
 
+# Copy go mod files and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy the rest of the source code
 COPY . .
-RUN go build -o main .
 
-FROM alpine:3.19
-
-# Install ca-certificates for HTTPS requests and envsubst for environment variable substitution
-RUN apk --no-cache add ca-certificates=20240111-r0 gettext=0.22.3-r0
-
-WORKDIR /app
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
-
-COPY --from=builder /app/main .
-COPY .env.example .env
-
-# Change ownership to non-root user
-RUN chown -R appuser:appgroup /app
-
-# Switch to non-root user
-USER appuser
-
+# Expose the app port
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -qO- http://localhost:3000/health || exit 1
-CMD ["/app/entrypoint.sh"] 
+
+# Use Air with the config in infra/config/.air.toml
+CMD ["air", "-c", "infra/config/.air.toml"]
