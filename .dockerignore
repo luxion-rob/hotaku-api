@@ -1,0 +1,73 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+README.md
+TODO.md
+SECURITY.md
+
+# Docker files (avoid copying Docker context into container)
+infra/docker/
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*_test.go
+testdata/
+coverage.out
+coverage.html
+test_output.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment files (will be mounted or copied separately)
+.env*
+!.env.example
+
+# Temporary files
+tmp/
+temp/
+
+# Node modules (if any)
+node_modules/
+
+# Secrets (should never be copied)
+secrets/
+*.key
+*.pem
+*.crt
+*.p12
+
+# Database files
+*.db
+*.sqlite
+
+# Backup files
+*.bak
+*.backup 
