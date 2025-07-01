@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strings"
 
-	"hotaku-api/internal/domain/interfaces"
+	"hotaku-api/internal/serviceinf"
 
 	"github.com/gin-gonic/gin"
 )
 
 // AuthMiddleware creates a middleware that validates JWT tokens
-func AuthMiddleware(tokenService interfaces.TokenService) gin.HandlerFunc {
+func AuthMiddleware(tokenService serviceinf.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {

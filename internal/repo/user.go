@@ -1,10 +1,10 @@
-package repositories
+package repo
 
 import (
 	"errors"
 	"fmt"
 	"hotaku-api/internal/domain/entities"
-	"hotaku-api/internal/domain/interfaces"
+	"hotaku-api/internal/repoinf"
 
 	"gorm.io/gorm"
 )
@@ -15,13 +15,17 @@ type UserRepositoryImpl struct {
 }
 
 // NewUserRepository creates a new instance of UserRepositoryImpl
-func NewUserRepository(db *gorm.DB) interfaces.UserRepository {
+func NewUserRepository(db *gorm.DB) repoinf.UserRepository {
 	return &UserRepositoryImpl{db: db}
 }
 
 // Create saves a new user to the database
 func (r *UserRepositoryImpl) Create(user *entities.User) error {
-	return r.db.Create(user).Error
+	err := r.db.Create(user).Error
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+	return nil
 }
 
 // GetByID retrieves a user by ID
@@ -50,16 +54,24 @@ func (r *UserRepositoryImpl) GetByEmail(email string) (*entities.User, error) {
 
 // Update updates an existing user
 func (r *UserRepositoryImpl) Update(user *entities.User) error {
-	if err := r.db.Save(user).Error; err != nil {
-		return fmt.Errorf("failed to update user: %w", err)
+	res := r.db.Save(user)
+	if res.Error != nil {
+		return fmt.Errorf("failed to update user: %w", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return fmt.Errorf("user not found")
 	}
 	return nil
 }
 
 // Delete removes a user by ID
 func (r *UserRepositoryImpl) Delete(id uint) error {
-	if err := r.db.Delete(&entities.User{}, id).Error; err != nil {
-		return fmt.Errorf("failed to delete user: %w", err)
+	res := r.db.Delete(&entities.User{}, id)
+	if res.Error != nil {
+		return fmt.Errorf("failed to delete user: %w", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return fmt.Errorf("user not found")
 	}
 	return nil
 }

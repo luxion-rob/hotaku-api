@@ -3,8 +3,9 @@ package server
 import (
 	"hotaku-api/config"
 	"hotaku-api/internal/controllers"
-	"hotaku-api/internal/repositories"
-	"hotaku-api/internal/usecases"
+	"hotaku-api/internal/repo"
+	"hotaku-api/internal/service"
+	"hotaku-api/internal/usecase"
 	"os"
 )
 
@@ -14,17 +15,17 @@ func InitializeServer() *Server {
 	config.ConnectDatabase()
 
 	// Initialize repositories
-	userRepo := repositories.NewUserRepository(config.DB)
+	userRepo := repo.NewUserRepository(config.DB)
 
 	// Get JWT secret from environment
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		panic("JWT_SECRET environment variable is required")
 	}
-	tokenService := repositories.NewTokenService(jwtSecret)
+	tokenService := service.NewTokenService(jwtSecret)
 
 	// Initialize use cases
-	authUseCase := usecases.NewAuthUseCase(userRepo, tokenService)
+	authUseCase := usecase.NewAuthUseCase(userRepo, tokenService)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authUseCase)
@@ -40,17 +41,17 @@ func InitializeServerWithConfig(appConfig *config.Config) *Server {
 	config.ConnectDatabase()
 
 	// Initialize repositories
-	userRepo := repositories.NewUserRepository(config.DB)
+	userRepo := repo.NewUserRepository(config.DB)
 
 	// Get JWT secret from environment
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		panic("JWT_SECRET environment variable is required")
 	}
-	tokenService := repositories.NewTokenService(jwtSecret)
+	tokenService := service.NewTokenService(jwtSecret)
 
 	// Initialize use cases
-	authUseCase := usecases.NewAuthUseCase(userRepo, tokenService)
+	authUseCase := usecase.NewAuthUseCase(userRepo, tokenService)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authUseCase)

@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"hotaku-api/internal/domain/dto"
-	"hotaku-api/internal/domain/interfaces"
+	"hotaku-api/internal/domain/request"
+	"hotaku-api/internal/domain/response"
+	"hotaku-api/internal/usecaseinf"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +11,11 @@ import (
 
 // AuthController handles authentication-related HTTP requests
 type AuthController struct {
-	authUseCase interfaces.AuthUseCase
+	authUseCase usecaseinf.AuthUseCase
 }
 
 // NewAuthController creates a new instance of AuthController
-func NewAuthController(authUseCase interfaces.AuthUseCase) *AuthController {
+func NewAuthController(authUseCase usecaseinf.AuthUseCase) *AuthController {
 	return &AuthController{
 		authUseCase: authUseCase,
 	}
@@ -22,38 +23,38 @@ func NewAuthController(authUseCase interfaces.AuthUseCase) *AuthController {
 
 // Register handles user registration
 func (ac *AuthController) Register(c *gin.Context) {
-	var req dto.RegisterRequest
+	var req request.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
-	response, err := ac.authUseCase.Register(&req)
+	body, err := ac.authUseCase.Register(&req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Registration failed", err.Error()))
 		return
 	}
 
-	c.JSON(response.GetStatus(), response)
+	c.JSON(http.StatusOK, response.SuccessResponse("User registered successfully", body))
 }
 
 // Login handles user login
 func (ac *AuthController) Login(c *gin.Context) {
-	var req dto.LoginRequest
+	var req request.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
-	response, err := ac.authUseCase.Login(&req)
+	body, err := ac.authUseCase.Login(&req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Login failed", err.Error()))
 		return
 	}
 
-	c.JSON(response.GetStatus(), response)
+	c.JSON(http.StatusOK, response.SuccessResponse("Login successful", body))
 }
 
 // Profile retrieves user profile
@@ -61,52 +62,51 @@ func (ac *AuthController) Profile(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
 	// Call use case
-	response, err := ac.authUseCase.GetProfile(userID)
+	body, err := ac.authUseCase.GetProfile(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Failed to get profile", err.Error()))
 		return
 	}
 
-	c.JSON(response.GetStatus(), response)
+	c.JSON(http.StatusOK, response.SuccessResponse("Profile retrieved successfully", body))
 }
 
 // UpdateProfile updates user profile
 func (ac *AuthController) UpdateProfile(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
-	var req dto.UpdateProfileRequest
+	var req request.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
-	response, err := ac.authUseCase.UpdateProfile(userID, &req)
+	body, err := ac.authUseCase.UpdateProfile(userID, &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Failed to update profile", err.Error()))
 		return
 	}
 
-	c.JSON(response.GetStatus(), response)
+	c.JSON(http.StatusOK, response.SuccessResponse("Profile updated successfully", body))
 }
 
 // ChangePassword changes user password
 func (ac *AuthController) ChangePassword(c *gin.Context) {
 	userID := c.GetUint("user_id")
 
-	var req dto.ChangePasswordRequest
+	var req request.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
 	err := ac.authUseCase.ChangePassword(userID, &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Failed to change password", err.Error()))
 		return
 	}
 
-	response := dto.NewSuccessResponse("Password changed successfully", nil)
-	c.JSON(response.GetStatus(), response)
+	c.JSON(http.StatusOK, response.SuccessResponse("Password changed successfully", nil))
 }

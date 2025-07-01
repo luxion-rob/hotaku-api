@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 	"hotaku-api/internal/controllers"
-	"hotaku-api/internal/domain/interfaces"
+	"hotaku-api/internal/serviceinf"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +21,7 @@ type Server struct {
 func NewServer(
 	authController *controllers.AuthController,
 	healthController *controllers.HealthController,
-	tokenService interfaces.TokenService,
+	tokenService serviceinf.TokenService,
 ) *Server {
 	router := gin.Default()
 

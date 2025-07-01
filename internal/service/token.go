@@ -1,8 +1,8 @@
-package repositories
+package service
 
 import (
 	"fmt"
-	"hotaku-api/internal/domain/interfaces"
+	"hotaku-api/internal/serviceinf"
 	"hotaku-api/utils"
 	"time"
 
@@ -15,7 +15,7 @@ type TokenServiceImpl struct {
 }
 
 // NewTokenService creates a new instance of TokenServiceImpl
-func NewTokenService(secretKey string) interfaces.TokenService {
+func NewTokenService(secretKey string) serviceinf.TokenService {
 	return &TokenServiceImpl{secretKey: secretKey}
 }
 
@@ -25,7 +25,7 @@ func (s *TokenServiceImpl) GenerateToken(userID uint, email string) (string, err
 }
 
 // ValidateToken validates and parses a JWT token
-func (s *TokenServiceImpl) ValidateToken(tokenString string) (*interfaces.TokenClaims, error) {
+func (s *TokenServiceImpl) ValidateToken(tokenString string) (*serviceinf.TokenClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -46,11 +46,26 @@ func (s *TokenServiceImpl) ValidateToken(tokenString string) (*interfaces.TokenC
 			}
 		}
 
-		userID := uint(claims["user_id"].(float64))
-		email := claims["email"].(string)
-		exp := int64(claims["exp"].(float64))
+		// extract and validate user_id
+		userIDFloat, ok := claims["user_id"].(float64)
+		if !ok {
+			return nil, fmt.Errorf("invalid user_id claim type")
+		}
+		userID := uint(userIDFloat)
 
-		return &interfaces.TokenClaims{
+		// extract and validate email
+		email, ok := claims["email"].(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid email claim type")
+		}
+
+		// extract and validate expiration
+		expFloat, ok := claims["exp"].(float64)
+		if !ok {
+			return nil, fmt.Errorf("invalid exp claim type")
+		}
+		exp := int64(expFloat)
+		return &serviceinf.TokenClaims{
 			UserID: userID,
 			Email:  email,
 			Exp:    exp,

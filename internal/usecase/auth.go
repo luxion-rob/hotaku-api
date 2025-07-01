@@ -1,20 +1,23 @@
-package usecases
+package usecase
 
 import (
 	"fmt"
 	"hotaku-api/internal/domain/dto"
 	"hotaku-api/internal/domain/entities"
-	"hotaku-api/internal/domain/interfaces"
+	"hotaku-api/internal/domain/request"
+	"hotaku-api/internal/repoinf"
+	"hotaku-api/internal/serviceinf"
+	"hotaku-api/internal/usecaseinf"
 )
 
 // AuthUseCaseImpl implements the authentication use cases
 type AuthUseCaseImpl struct {
-	userRepo     interfaces.UserRepository
-	tokenService interfaces.TokenService
+	userRepo     repoinf.UserRepository
+	tokenService serviceinf.TokenService
 }
 
 // NewAuthUseCase creates a new instance of AuthUseCaseImpl
-func NewAuthUseCase(userRepo interfaces.UserRepository, tokenService interfaces.TokenService) interfaces.AuthUseCase {
+func NewAuthUseCase(userRepo repoinf.UserRepository, tokenService serviceinf.TokenService) usecaseinf.AuthUseCase {
 	return &AuthUseCaseImpl{
 		userRepo:     userRepo,
 		tokenService: tokenService,
@@ -22,7 +25,7 @@ func NewAuthUseCase(userRepo interfaces.UserRepository, tokenService interfaces.
 }
 
 // Register handles user registration
-func (uc *AuthUseCaseImpl) Register(req *dto.RegisterRequest) (*dto.AuthResponse, error) {
+func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResponse, error) {
 	// Check if user already exists
 	existingUser, err := uc.userRepo.GetByEmail(req.Email)
 	if err == nil && existingUser != nil {
@@ -53,7 +56,7 @@ func (uc *AuthUseCaseImpl) Register(req *dto.RegisterRequest) (*dto.AuthResponse
 	}
 
 	// Create response
-	userData := &dto.UserData{
+	userDTO := &dto.UserDTO{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
@@ -61,11 +64,14 @@ func (uc *AuthUseCaseImpl) Register(req *dto.RegisterRequest) (*dto.AuthResponse
 		UpdatedAt: user.UpdatedAt,
 	}
 
-	return dto.NewAuthResponse("User registered successfully", token, userData), nil
+	return &dto.AuthResponse{
+		Token: token,
+		User:  userDTO,
+	}, nil
 }
 
 // Login handles user login
-func (uc *AuthUseCaseImpl) Login(req *dto.LoginRequest) (*dto.AuthResponse, error) {
+func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, error) {
 	// Get user by email
 	user, err := uc.userRepo.GetByEmail(req.Email)
 	if err != nil {
@@ -84,7 +90,7 @@ func (uc *AuthUseCaseImpl) Login(req *dto.LoginRequest) (*dto.AuthResponse, erro
 	}
 
 	// Create response
-	userData := &dto.UserData{
+	userDTO := &dto.UserDTO{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
@@ -92,17 +98,20 @@ func (uc *AuthUseCaseImpl) Login(req *dto.LoginRequest) (*dto.AuthResponse, erro
 		UpdatedAt: user.UpdatedAt,
 	}
 
-	return dto.NewAuthResponse("Login successful", token, userData), nil
+	return &dto.AuthResponse{
+		Token: token,
+		User:  userDTO,
+	}, nil
 }
 
 // GetProfile retrieves user profile
-func (uc *AuthUseCaseImpl) GetProfile(userID uint) (*dto.UserResponse, error) {
+func (uc *AuthUseCaseImpl) GetProfile(userID uint) (*dto.UserDTO, error) {
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
 
-	userData := &dto.UserData{
+	userDTO := &dto.UserDTO{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
@@ -110,11 +119,11 @@ func (uc *AuthUseCaseImpl) GetProfile(userID uint) (*dto.UserResponse, error) {
 		UpdatedAt: user.UpdatedAt,
 	}
 
-	return dto.NewUserResponse("Profile retrieved successfully", userData), nil
+	return userDTO, nil
 }
 
 // UpdateProfile updates user profile
-func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *dto.UpdateProfileRequest) (*dto.UserResponse, error) {
+func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *request.UpdateProfileRequest) (*dto.UserDTO, error) {
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
@@ -138,7 +147,7 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *dto.UpdateProfileRequ
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	userData := &dto.UserData{
+	userDTO := &dto.UserDTO{
 		ID:        user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
@@ -146,11 +155,11 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *dto.UpdateProfileRequ
 		UpdatedAt: user.UpdatedAt,
 	}
 
-	return dto.NewUserResponse("Profile updated successfully", userData), nil
+	return userDTO, nil
 }
 
 // ChangePassword changes user password
-func (uc *AuthUseCaseImpl) ChangePassword(userID uint, req *dto.ChangePasswordRequest) error {
+func (uc *AuthUseCaseImpl) ChangePassword(userID uint, req *request.ChangePasswordRequest) error {
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("user not found")

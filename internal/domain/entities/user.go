@@ -31,14 +31,3 @@ func (u *User) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil
 }
-
-// IsValidEmail checks if the email is valid
-func (u *User) IsValidEmail() bool {
-	// Basic email validation - you might want to use a more robust validation library
-	return len(u.Email) > 0 && len(u.Email) <= 254
-}
-
-// IsValidName checks if the name is valid
-func (u *User) IsValidName() bool {
-	return len(u.Name) >= 2 && len(u.Name) <= 100
-}
