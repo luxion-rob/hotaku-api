@@ -25,7 +25,6 @@ func main() {
 	srv := server.InitializeServer()
 
 	if err := srv.Run(appConfig.Server.Port); err != nil {
-		log.Printf("Failed to start server: %v", err)
-		panic("Failed to start server: " + err.Error())
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }

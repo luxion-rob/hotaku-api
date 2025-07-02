@@ -21,7 +21,16 @@ func NewUserRepository(db *gorm.DB) repoinf.UserRepository {
 
 // Create saves a new user to the database
 func (r *UserRepositoryImpl) Create(user *entities.User) error {
-	err := r.db.Create(user).Error
+	var count int64
+	err := r.db.Model(&entities.User{}).Where("email = ?", user.Email).Count(&count).Error
+	if err != nil {
+		return fmt.Errorf("failed to find user: %w", err)
+	}
+	if count > 0 {
+		return fmt.Errorf("user already exists")
+	}
+
+	err = r.db.Create(user).Error
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
@@ -54,7 +63,7 @@ func (r *UserRepositoryImpl) GetByEmail(email string) (*entities.User, error) {
 
 // Update updates an existing user
 func (r *UserRepositoryImpl) Update(user *entities.User) error {
-	res := r.db.Save(user)
+	res := r.db.Model(user).Where("id = ?", user.ID).Updates(user)
 	if res.Error != nil {
 		return fmt.Errorf("failed to update user: %w", res.Error)
 	}
