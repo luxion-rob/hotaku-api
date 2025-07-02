@@ -2,7 +2,7 @@ CREATE TABLE users_notifications (
     user_id CHAR(36) NOT NULL,
     notification_id CHAR(36) NOT NULL,
     sent_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    seen_at TIMESTAMP,
+    seen_at TIMESTAMP NULL DEFAULT NULL,
     PRIMARY KEY (user_id, notification_id),
     CONSTRAINT fk_users_notifications_users FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_users_notifications_notifications FOREIGN KEY (notification_id) REFERENCES notifications(notification_id) ON DELETE CASCADE,

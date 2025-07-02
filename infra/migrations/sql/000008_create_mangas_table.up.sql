@@ -9,5 +9,6 @@ CREATE TABLE mangas (
     PRIMARY KEY (manga_id),
     CONSTRAINT fk_mangas_manga_statuses_status_id FOREIGN KEY (status_id) REFERENCES manga_statuses(status_id),
     INDEX idx_mangas_status (status_id),
-    INDEX idx_mangas_title (title)
+    INDEX idx_mangas_title (title),
+    FULLTEXT KEY ft_mangas_title_description (title, description)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
