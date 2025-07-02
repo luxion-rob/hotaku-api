@@ -4,6 +4,7 @@ CREATE TABLE user_read_chapters (
     read_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, chapter_id),
     INDEX idx_user_read_chapters_chapter_id (chapter_id),
+    INDEX idx_user_read_chapters_user_id_read_at (user_id, read_at),
     CONSTRAINT fk_user_read_chapters_users
         FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
