@@ -1,6 +1,6 @@
 CREATE TABLE user_read_chapters (
-    user_id VARCHAR(36) NOT NULL,
-    chapter_id VARCHAR(36) NOT NULL,
+    user_id CHAR(36) NOT NULL,
+    chapter_id CHAR(36) NOT NULL,
     read_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, chapter_id),
     CONSTRAINT fk_user_read_chapters_users FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,

@@ -1,7 +1,7 @@
 CREATE TABLE manga_chapters (
-    chapter_id VARCHAR(36) NOT NULL UNIQUE,
-    external_id VARCHAR(36) NOT NULL UNIQUE,
-    manga_id VARCHAR(36) NOT NULL,
+    chapter_id CHAR(36) NOT NULL,
+    external_id CHAR(36) NOT NULL,
+    manga_id CHAR(36) NOT NULL,
     chapter_number INT NOT NULL,
     title VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -1,6 +1,6 @@
 CREATE TABLE notifications (
-    notification_id VARCHAR(36) NOT NULL UNIQUE,
-    external_id VARCHAR(36) NOT NULL UNIQUE,
+    notification_id CHAR(36) NOT NULL,
+    external_id CHAR(36) NOT NULL,
     message VARCHAR(500) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (notification_id),

@@ -1,8 +1,8 @@
 CREATE TABLE users (
-    user_id varchar(36) NOT NULL UNIQUE,
-    role_id varchar(36) NOT NULL,
+    user_id CHAR(36) NOT NULL,
+    role_id CHAR(36) NOT NULL,
     email VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -11,5 +11,5 @@ CREATE TABLE users (
     PRIMARY KEY (user_id),
     INDEX idx_users_role_id (role_id),
     INDEX idx_users_deleted_at (deleted_at),
-    CONSTRAINT fk_users_roles FOREIGN KEY (role_id) REFERENCES roles(role_id)
+    CONSTRAINT fk_users_roles FOREIGN KEY (role_id) REFERENCES roles(role_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
