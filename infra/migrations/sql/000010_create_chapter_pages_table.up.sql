@@ -1,4 +1,4 @@
-CREATE TABLE chapter_pages (
+CREATE TABLE `chapter_pages` (
     page_id CHAR(36) NOT NULL,
     external_id CHAR(36) NOT NULL UNIQUE,
     chapter_id CHAR(36) NOT NULL,

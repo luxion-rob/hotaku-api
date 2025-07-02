@@ -1,4 +1,4 @@
-CREATE TABLE authors (
+CREATE TABLE `authors` (
     author_id CHAR(36) NOT NULL,
     external_id CHAR(36) NOT NULL UNIQUE,
     author_name VARCHAR(50) NOT NULL,

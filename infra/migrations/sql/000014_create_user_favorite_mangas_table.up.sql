@@ -1,4 +1,4 @@
-CREATE TABLE user_favorite_mangas (
+CREATE TABLE `user_favorite_mangas` (
     favorite_id CHAR(36) NOT NULL,
     external_id CHAR(36) NOT NULL UNIQUE,
     user_id CHAR(36) NOT NULL,

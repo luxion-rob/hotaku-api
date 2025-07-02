@@ -1,4 +1,4 @@
-CREATE TABLE user_read_chapters (
+CREATE TABLE `user_read_chapters` (
     user_id CHAR(36) NOT NULL,
     chapter_id CHAR(36) NOT NULL,
     read_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -1,4 +1,4 @@
-CREATE TABLE mangas (
+CREATE TABLE `mangas` (
     manga_id CHAR(36) NOT NULL,
     external_id CHAR(36) NOT NULL UNIQUE,
     status_id INT UNSIGNED NOT NULL,
@@ -7,7 +7,10 @@ CREATE TABLE mangas (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (manga_id),
-    CONSTRAINT fk_mangas_manga_statuses_status_id FOREIGN KEY (status_id) REFERENCES manga_statuses(status_id) ON DELETE CASCADE,
+        CONSTRAINT fk_mangas_manga_statuses_status_id
+        FOREIGN KEY (status_id) REFERENCES manga_statuses(status_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
     INDEX idx_mangas_status (status_id),
     INDEX idx_mangas_title (title),
     FULLTEXT KEY ft_mangas_title_description (title, description)

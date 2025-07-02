@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE `users` (
     user_id CHAR(36) NOT NULL,
     role_id CHAR(36) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,

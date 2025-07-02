@@ -1,1 +1,3 @@
-DROP TABLE IF EXISTS mangas_categories;
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `mangas_categories`;
+SET FOREIGN_KEY_CHECKS = 1;

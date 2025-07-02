@@ -1,4 +1,4 @@
-CREATE TABLE manga_chapters (
+CREATE TABLE `manga_chapters` (
     chapter_id CHAR(36) NOT NULL,
     external_id CHAR(36) NOT NULL UNIQUE,
     manga_id CHAR(36) NOT NULL,

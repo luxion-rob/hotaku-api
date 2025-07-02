@@ -1,4 +1,4 @@
-CREATE TABLE notifications (
+CREATE TABLE `notifications` (
     notification_id CHAR(36) NOT NULL,
     external_id CHAR(36) NOT NULL UNIQUE,
     message VARCHAR(500) NOT NULL,

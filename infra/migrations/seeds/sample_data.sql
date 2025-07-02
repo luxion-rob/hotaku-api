@@ -8,19 +8,20 @@ INSERT INTO `roles` (`role_id`, `role_name`) VALUES
 
 -- =============================================
 -- Sample data for users
+-- Pass: adminpass, userpass, guestpass
 -- =============================================
 INSERT INTO `users` (`user_id`, `role_id`, `email`, `password`, `name`) VALUES
-  ('00000001-0001-0001-0001-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'admin@example.com', 'adminpass',    'Administrator'),
-  ('00000002-0002-0002-0002-000000000002', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'john.doe@example.com', 'userpass', 'John Doe'),
-  ('00000003-0003-0003-0003-000000000003', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'jane.smith@example.com', 'guestpass','Jane Smith');
+  ('00000001-0001-0001-0001-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'admin@example.com', 'cTv9p4hwv50bJh9WUob4XpfuYU7+Xw+vfDTnyk9luso=', 'Administrator'),
+  ('00000002-0002-0002-0002-000000000002', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'john.doe@example.com', 'BdSWkrdV+ZxFBLUQQY7+7uv9RmiSVA8nrPmjGjJtZQQ=', 'John Doe'),
+  ('00000003-0003-0003-0003-000000000003', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'jane.smith@example.com', 'bbsC9dzLthRtJIU54wob7Uq1zdJ2HrNx5LxeJqr6TZc=', 'Jane Smith');
 
 -- =============================================
 -- Sample data for authors
 -- =============================================
 INSERT INTO `authors` (`author_id`, `external_id`, `author_name`, `author_bio`) VALUES
-  ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 'Eiichiro Oda',    'Tác giả của One Piece'),
+  ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 'Eiichiro Oda', 'Tác giả của One Piece'),
   ('33333333-3333-3333-3333-333333333333', '44444444-4444-4444-4444-444444444444', 'Masashi Kishimoto','Tác giả của Naruto'),
-  ('55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666', 'Tite Kubo',        'Tác giả của Bleach');
+  ('55555555-5555-5555-5555-555555555555', '66666666-6666-6666-6666-666666666666', 'Tite Kubo', 'Tác giả của Bleach');
 
 -- =============================================
 -- Sample data for groups
@@ -58,8 +59,8 @@ INSERT INTO `manga_statuses` (`status_id`, `status_name`) VALUES
 -- =============================================
 INSERT INTO `mangas` (`manga_id`, `external_id`, `status_id`, `title`, `description`) VALUES
   ('cccccccc-0001-0001-0001-000000000001', 'dddddddd-0001-0001-0001-000000000001', 1, 'One Piece', 'Cuộc phiêu lưu của băng Mũ Rơm'),
-  ('cccccccc-0002-0002-0002-000000000002', 'dddddddd-0002-0002-0002-000000000002', 2, 'Naruto',    'Hành trình của Uzumaki Naruto'),
-  ('cccccccc-0003-0003-0003-000000000003', 'dddddddd-0003-0003-0003-000000000003', 1, 'Bleach',    'Cuộc chiến với Hollow');
+  ('cccccccc-0002-0002-0002-000000000002', 'dddddddd-0002-0002-0002-000000000002', 2, 'Naruto', 'Hành trình của Uzumaki Naruto'),
+  ('cccccccc-0003-0003-0003-000000000003', 'dddddddd-0003-0003-0003-000000000003', 1, 'Bleach', 'Cuộc chiến với Hollow');
 
 -- =============================================
 -- Sample data for manga_chapters

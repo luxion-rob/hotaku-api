@@ -1,4 +1,4 @@
-CREATE TABLE mangas_authors (
+CREATE TABLE `mangas_authors` (
     manga_id CHAR(36) NOT NULL,
     author_id CHAR(36) NOT NULL,
     PRIMARY KEY (manga_id, author_id),
