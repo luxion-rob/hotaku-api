@@ -1,8 +1,8 @@
 CREATE TABLE chapter_pages (
     page_id CHAR(36) NOT NULL,
-    external_id CHAR(36) NOT NULL,
+    external_id CHAR(36) NOT NULL UNIQUE,
     chapter_id CHAR(36) NOT NULL,
-    page_number INT NOT NULL,
+    page_number INT UNSIGNED NOT NULL,
     image_url VARCHAR(2048) NOT NULL,
     PRIMARY KEY (page_id),
     INDEX idx_chapter_pages_chapter_id (chapter_id),

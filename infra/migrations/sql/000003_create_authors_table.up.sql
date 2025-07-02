@@ -1,6 +1,6 @@
 CREATE TABLE authors (
     author_id CHAR(36) NOT NULL,
-    external_id CHAR(36) NOT NULL,
+    external_id CHAR(36) NOT NULL UNIQUE,
     author_name VARCHAR(50) NOT NULL,
     author_bio TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

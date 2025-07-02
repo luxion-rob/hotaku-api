@@ -1,6 +1,6 @@
 CREATE TABLE user_favorite_mangas (
     favorite_id CHAR(36) NOT NULL,
-    external_id CHAR(36) NOT NULL,
+    external_id CHAR(36) NOT NULL UNIQUE,
     user_id CHAR(36) NOT NULL,
     manga_id CHAR(36) NOT NULL,
     added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -1,6 +1,6 @@
 CREATE TABLE manga_chapters (
     chapter_id CHAR(36) NOT NULL,
-    external_id CHAR(36) NOT NULL,
+    external_id CHAR(36) NOT NULL UNIQUE,
     manga_id CHAR(36) NOT NULL,
     chapter_number DECIMAL(10, 2) NOT NULL,
     title VARCHAR(255),
