@@ -36,7 +36,7 @@ EXPOSE 3000
 USER appuser
 
 # Health check to monitor container health
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=60s --timeout=3s --start-period=5s --retries=3 \
     CMD wget -qO- http://localhost:3000/health || exit 1
 
 # Use Air with the config in infra/config/.air.toml
