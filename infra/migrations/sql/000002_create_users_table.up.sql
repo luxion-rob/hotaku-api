@@ -11,5 +11,6 @@ CREATE TABLE `users` (
     PRIMARY KEY (user_id),
     INDEX idx_users_role_id (role_id),
     INDEX idx_users_deleted_at (deleted_at),
+    INDEX idx_users_deleted_flag (deleted_flag),
     CONSTRAINT fk_users_roles FOREIGN KEY (role_id) REFERENCES roles(role_id) ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

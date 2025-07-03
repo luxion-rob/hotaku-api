@@ -1,3 +1,4 @@
+-- No need for DELIMITER when running via golang-migrate
 CREATE TRIGGER `trg_users_bi_set_deleted_flag`
 BEFORE INSERT ON `users`
 FOR EACH ROW

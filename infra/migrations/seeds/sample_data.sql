@@ -11,9 +11,9 @@ INSERT INTO `roles` (`role_id`, `role_name`) VALUES
 -- Pass: adminpass, userpass, guestpass
 -- =============================================
 INSERT INTO `users` (`user_id`, `role_id`, `email`, `password`, `name`) VALUES
-  ('00000001-0001-0001-0001-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'admin@example.com', 'cTv9p4hwv50bJh9WUob4XpfuYU7+Xw+vfDTnyk9luso=', 'Administrator'),
-  ('00000002-0002-0002-0002-000000000002', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'john.doe@example.com', 'BdSWkrdV+ZxFBLUQQY7+7uv9RmiSVA8nrPmjGjJtZQQ=', 'John Doe'),
-  ('00000003-0003-0003-0003-000000000003', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'jane.smith@example.com', 'bbsC9dzLthRtJIU54wob7Uq1zdJ2HrNx5LxeJqr6TZc=', 'Jane Smith');
+  ('00000001-0001-0001-0001-000000000001', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'admin@example.com', '$2b$12$uY1ExsDlh2TCDxEXNShc9eUKGMBkncw7FkvBxLYWXNnz4xkVfNn2K', 'Administrator'),
+  ('00000002-0002-0002-0002-000000000002', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'john.doe@example.com', '$2b$12$eTmGCE9kArCCEUrNs3/4UOaCDE78Pjcr8T6tB.CGL3pQnwDB6QDs6', 'John Doe'),
+  ('00000003-0003-0003-0003-000000000003', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'jane.smith@example.com', '$2b$12$v/dJBXjwI7.sGveMA2RW6.5.LZURtrtWLWVRT7YF5D6/Qsic2iGoq', 'Jane Smith');
 
 -- =============================================
 -- Sample data for authors

@@ -12,6 +12,6 @@ CREATE TABLE `mangas` (
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
     INDEX idx_mangas_status (status_id),
-    INDEX idx_mangas_title (title),
-    FULLTEXT KEY ft_mangas_title_description (title, description)
+    INDEX idx_mangas_created_at (created_at)
+    FULLTEXT KEY ft_mangas_title_description (title)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
