@@ -36,6 +36,8 @@ services:
       - MYSQL_USER=${DB_USER}
       - MYSQL_PASSWORD=${DB_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    # Allows creating triggers/functions without SUPER privilege
+    command: --log-bin-trust-function-creators=1
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
