@@ -1,4 +1,4 @@
-.PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean test-local docker-prod-up generate-secrets create-env test-db fix-mysql-permissions setup-env-files
+.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env-files migrate-force
 
 # Default target
 help: ## 🚀 Show this help message
@@ -44,15 +44,23 @@ migrate-up: .ensure-migrate-script ## 🗄️ Run database migrations
 	@bash scripts/migrate.sh up
 
 # Rollback database migrations
-migrate-down: .ensure-migrate-script ## 🗄️ Rollback last migration
-	@bash scripts/migrate.sh down
+migrate-down: .ensure-migrate-script ## 🗄️ Rollback to specific version
+	@bash scripts/migrate.sh down "$(version)"
 
 # Show migration status
 migrate-status: .ensure-migrate-script ## 🗄️ Show migration status
 	@bash scripts/migrate.sh status
 
+# Refresh migrations (rollback all and run from start)
+migrate-refresh: .ensure-migrate-script ## 🗄️ Refresh migrations (rollback all + run from start)
+	@bash scripts/migrate.sh refresh
+
 .ensure-migrate-script:
 	@chmod +x scripts/migrate.sh
+
+# Force migration version (usage: make migrate-force version=18)
+migrate-force: .ensure-migrate-script ## 🗄️ Force migration version (usage: make migrate-force version=18)
+	@bash scripts/migrate.sh force $(version)
 
 # Clean up Docker containers and volumes
 clean: ## 🧹 Clean up containers, volumes, and Docker cache

@@ -55,13 +55,17 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  up              Run all pending migrations"
-    echo "  down [steps]    Rollback migrations (default: 1 step)"
+    echo "  down [version]  Rollback to specific version (default: 0)"
+    echo "  force [version] Force migration to specific version"
+    echo "  refresh         Rollback all migrations and run them from start"
     echo "  status          Show migration status"
     echo "  help            Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 up"
-    echo "  $0 down 2"
+    echo "  $0 down 5              # Rollback to version 5"
+    echo "  $0 force 3             # Force to version 3"
+    echo "  $0 refresh             # Reset and run all migrations"
     echo "  $0 status"
 }
 
@@ -105,60 +109,75 @@ wait_for_db() {
     fi
 }
 
-# Run migrations up
-migrate_up() {
-    print_status "Running migrations up..."
+# Helper function to run migration commands (Docker vs local)
+run_migration_cmd() {
+    local action=$1
+    shift
+    local description=$1
+    shift
+    local extra_args=("$@")
+    
+    print_status "$description..."
     
     # Check if we're running in Docker environment
     if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
-        print_status "Docker MySQL container is running, running migrations inside Docker..."
+        print_status "Docker MySQL container is running, running $action inside Docker..."
         check_go
-        load_env
         wait_for_db
+        load_env
         
         # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=up
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action="$action" "${extra_args[@]}"
     else
-        print_status "Docker MySQL container not running, running migrations locally..."
+        print_status "Docker MySQL container not running, running $action locally..."
         check_go
-        load_env
         wait_for_db
-        go run ../cmd/migrate/main.go -action=up
+        load_env
+        go run ../cmd/migrate/main.go -action="$action" "${extra_args[@]}"
     fi
-    
+}
+
+# Run migrations up
+migrate_up() {
+    run_migration_cmd "up" "Running migrations up"
     print_status "Migrations completed!"
 }
 
 # Run migrations down
 migrate_down() {
-    local steps=${1:-1}
-    print_status "Rolling back $steps migration(s)..."
-    
-    # Check if we're running in Docker environment
-    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
-        print_status "Docker MySQL container is running, running rollback inside Docker..."
-        check_go
-        wait_for_db
-        load_env
-        
-        # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=down -steps="$steps"
-    else
-        print_status "Docker MySQL container not running, running rollback locally..."
-        check_go
-        wait_for_db
-        load_env
-    go run ../cmd/migrate/main.go -action=down -steps="$steps"
-    fi
-    
-    print_status "Rollback completed! $steps"
+    local version=${1:-0}
+    run_migration_cmd "down" "Rolling back to version $version" -version="$version"
+    print_status "Rollback completed! Target version: $version"
 }
 
 # Show migration status
 show_status() {
-    print_status "Migration status:"
-    # This would require additional implementation to show current migration version
-    print_warning "Status command not implemented yet"
+    run_migration_cmd "status" "Checking migration status"
+}
+
+# Force migration version
+force_version() {
+    local version=$1
+    if [ -z "$version" ]; then
+        print_error "No version specified. Usage: make migrate-force version=18"
+        exit 1
+    fi
+    run_migration_cmd "force" "Forcing migration version to $version" -version="$version"
+}
+
+# Refresh migrations (rollback all and run from start)
+migrate_refresh() {
+    print_status "Starting migration refresh (rollback all + run from start)..."
+    
+    # First, rollback to version 0 (beginning)
+    print_status "Step 1: Rolling back all migrations to version 0..."
+    run_migration_cmd "down" "Rolling back all migrations" -version="0"
+    
+    # Then, run all migrations up
+    print_status "Step 2: Running all migrations from start..."
+    run_migration_cmd "up" "Running all migrations from start"
+    
+    print_status "Migration refresh completed successfully!"
 }
 
 # Main script logic
@@ -167,10 +186,16 @@ case "$1" in
         migrate_up
         ;;
     "down")
-        migrate_down $2
+        migrate_down "$2"
         ;;
     "status")
         show_status
+        ;;
+    "force")
+        force_version "$2"
+        ;;
+    "refresh")
+        migrate_refresh
         ;;
     "help"|"")
         show_help
