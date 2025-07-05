@@ -51,11 +51,15 @@ migrate-down: .ensure-migrate-script ## 🗄️ Rollback to specific version
 migrate-status: .ensure-migrate-script ## 🗄️ Show migration status
 	@bash scripts/migrate.sh status
 
+# Refresh migrations (rollback all and run from start)
+migrate-refresh: .ensure-migrate-script ## 🗄️ Refresh migrations (rollback all + run from start)
+	@bash scripts/migrate.sh refresh
+
 .ensure-migrate-script:
 	@chmod +x scripts/migrate.sh
 
 # Force migration version (usage: make migrate-force version=18)
-migrate-force: .ensure-migrate-script ## Force migration version (usage: make migrate-force version=18)
+migrate-force: .ensure-migrate-script ## 🗄️ Force migration version (usage: make migrate-force version=18)
 	@bash scripts/migrate.sh force $(version)
 
 # Clean up Docker containers and volumes

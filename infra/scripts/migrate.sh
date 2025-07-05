@@ -57,13 +57,15 @@ show_help() {
     echo "  up              Run all pending migrations"
     echo "  down [version]  Rollback to specific version (default: 0)"
     echo "  force [version] Force migration to specific version"
+    echo "  refresh         Rollback all migrations and run them from start"
     echo "  status          Show migration status"
     echo "  help            Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 up"
-    echo "  $0 down version=5       # Rollback to version 5"
-    echo "  $0 force version=3      # Force to version 3"
+    echo "  $0 down 5              # Rollback to version 5"
+    echo "  $0 force 3             # Force to version 3"
+    echo "  $0 refresh             # Reset and run all migrations"
     echo "  $0 status"
 }
 
@@ -110,8 +112,10 @@ wait_for_db() {
 # Helper function to run migration commands (Docker vs local)
 run_migration_cmd() {
     local action=$1
-    local extra_args=$2
-    local description=$3
+    shift
+    local description=$1
+    shift
+    local extra_args=("$@")
     
     print_status "$description..."
     
@@ -123,32 +127,32 @@ run_migration_cmd() {
         load_env
         
         # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action="$action" "$extra_args"
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action="$action" "${extra_args[@]}"
     else
         print_status "Docker MySQL container not running, running $action locally..."
         check_go
         wait_for_db
         load_env
-        go run ../cmd/migrate/main.go -action="$action" "$extra_args"
+        go run ../cmd/migrate/main.go -action="$action" "${extra_args[@]}"
     fi
 }
 
 # Run migrations up
 migrate_up() {
-    run_migration_cmd "up" "" "Running migrations up"
+    run_migration_cmd "up" "Running migrations up"
     print_status "Migrations completed!"
 }
 
 # Run migrations down
 migrate_down() {
     local version=${1:-0}
-    run_migration_cmd "down" "-version=\"$version\"" "Rolling back to version $version"
+    run_migration_cmd "down" "Rolling back to version $version" -version="$version"
     print_status "Rollback completed! Target version: $version"
 }
 
 # Show migration status
 show_status() {
-    run_migration_cmd "status" "" "Checking migration status"
+    run_migration_cmd "status" "Checking migration status"
 }
 
 # Force migration version
@@ -158,7 +162,22 @@ force_version() {
         print_error "No version specified. Usage: make migrate-force version=18"
         exit 1
     fi
-    run_migration_cmd "force" "-version=\"$version\"" "Forcing migration version to $version"
+    run_migration_cmd "force" "Forcing migration version to $version" -version="$version"
+}
+
+# Refresh migrations (rollback all and run from start)
+migrate_refresh() {
+    print_status "Starting migration refresh (rollback all + run from start)..."
+    
+    # First, rollback to version 0 (beginning)
+    print_status "Step 1: Rolling back all migrations to version 0..."
+    run_migration_cmd "down" "Rolling back all migrations" -version="0"
+    
+    # Then, run all migrations up
+    print_status "Step 2: Running all migrations from start..."
+    run_migration_cmd "up" "Running all migrations from start"
+    
+    print_status "Migration refresh completed successfully!"
 }
 
 # Main script logic
@@ -174,6 +193,9 @@ case "$1" in
         ;;
     "force")
         force_version "$2"
+        ;;
+    "refresh")
+        migrate_refresh
         ;;
     "help"|"")
         show_help
