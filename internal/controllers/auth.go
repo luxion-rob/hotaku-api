@@ -60,6 +60,10 @@ func (ac *AuthController) Login(c *gin.Context) {
 // Profile retrieves user profile
 func (ac *AuthController) Profile(c *gin.Context) {
 	userID := c.GetString("user_id")
+	if userID == "" {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse("Unauthorized", "User ID not found"))
+		return
+	}
 
 	// Call use case
 	body, err := ac.authUseCase.GetProfile(userID)
