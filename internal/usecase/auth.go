@@ -8,6 +8,8 @@ import (
 	"hotaku-api/internal/repoinf"
 	"hotaku-api/internal/serviceinf"
 	"hotaku-api/internal/usecaseinf"
+
+	"github.com/google/uuid"
 )
 
 // AuthUseCaseImpl implements the authentication use cases
@@ -34,6 +36,8 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 
 	// Create new user entity
 	user := &entities.User{
+		UserID:   uuid.New().String(),
+		RoleID:   req.RoleID, // This should be validated against existing roles
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,
@@ -50,14 +54,15 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 	}
 
 	// Generate token
-	token, err := uc.tokenService.GenerateToken(user.ID, user.Email)
+	token, err := uc.tokenService.GenerateToken(user.UserID, user.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
 	// Create response
 	userDTO := &dto.UserDTO{
-		ID:        user.ID,
+		UserID:    user.UserID,
+		RoleID:    user.RoleID,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
@@ -84,14 +89,15 @@ func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, 
 	}
 
 	// Generate token
-	token, err := uc.tokenService.GenerateToken(user.ID, user.Email)
+	token, err := uc.tokenService.GenerateToken(user.UserID, user.Email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
 	// Create response
 	userDTO := &dto.UserDTO{
-		ID:        user.ID,
+		UserID:    user.UserID,
+		RoleID:    user.RoleID,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
@@ -105,14 +111,15 @@ func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, 
 }
 
 // GetProfile retrieves user profile
-func (uc *AuthUseCaseImpl) GetProfile(userID uint) (*dto.UserDTO, error) {
+func (uc *AuthUseCaseImpl) GetProfile(userID string) (*dto.UserDTO, error) {
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
 
 	userDTO := &dto.UserDTO{
-		ID:        user.ID,
+		UserID:    user.UserID,
+		RoleID:    user.RoleID,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
@@ -123,7 +130,7 @@ func (uc *AuthUseCaseImpl) GetProfile(userID uint) (*dto.UserDTO, error) {
 }
 
 // UpdateProfile updates user profile
-func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *request.UpdateProfileRequest) (*dto.UserDTO, error) {
+func (uc *AuthUseCaseImpl) UpdateProfile(userID string, req *request.UpdateProfileRequest) (*dto.UserDTO, error) {
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
@@ -136,7 +143,7 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *request.UpdateProfile
 	if req.Email != "" {
 		// Check if email is already taken by another user
 		existingUser, err := uc.userRepo.GetByEmail(req.Email)
-		if err == nil && existingUser != nil && existingUser.ID != userID {
+		if err == nil && existingUser != nil && existingUser.UserID != userID {
 			return nil, fmt.Errorf("email already taken")
 		}
 		user.Email = req.Email
@@ -148,7 +155,8 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *request.UpdateProfile
 	}
 
 	userDTO := &dto.UserDTO{
-		ID:        user.ID,
+		UserID:    user.UserID,
+		RoleID:    user.RoleID,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
@@ -159,7 +167,7 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID uint, req *request.UpdateProfile
 }
 
 // ChangePassword changes user password
-func (uc *AuthUseCaseImpl) ChangePassword(userID uint, req *request.ChangePasswordRequest) error {
+func (uc *AuthUseCaseImpl) ChangePassword(userID string, req *request.ChangePasswordRequest) error {
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("user not found")

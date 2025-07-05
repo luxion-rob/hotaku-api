@@ -8,12 +8,18 @@ import (
 
 // User represents the core user entity in the domain layer
 type User struct {
-	ID        uint      `json:"id"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UserID      string     `json:"user_id" gorm:"type:char(36);primaryKey"`
+	RoleID      string     `json:"role_id" gorm:"type:char(36);not null"`
+	Email       string     `json:"email" gorm:"unique;not null"`
+	Password    string     `json:"-" gorm:"not null"`
+	Name        string     `json:"name" gorm:"not null"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedFlag bool       `json:"deleted_flag" gorm:"not null;default:false"`
+	DeletedAt   *time.Time `json:"deleted_at"`
+
+	// Relationships
+	Role *Role `json:"role,omitempty" gorm:"foreignKey:RoleID;references:RoleID"`
 }
 
 // HashPassword hashes the user's password using bcrypt
@@ -30,4 +36,9 @@ func (u *User) HashPassword() error {
 func (u *User) CheckPassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil
+}
+
+// IsDeleted checks if the user is soft deleted
+func (u *User) IsDeleted() bool {
+	return u.DeletedFlag
 }

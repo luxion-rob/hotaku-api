@@ -1,12 +1,14 @@
 package controllers
 
 import (
+	"fmt"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/usecaseinf"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // AuthController handles authentication-related HTTP requests
@@ -57,9 +59,26 @@ func (ac *AuthController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse("Login successful", body))
 }
 
+// validateUserID validates that the userID is a valid UUID format
+func validateUserID(userID string) error {
+	if userID == "" {
+		return fmt.Errorf("user ID is empty")
+	}
+	if _, err := uuid.Parse(userID); err != nil {
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+	return nil
+}
+
 // Profile retrieves user profile
 func (ac *AuthController) Profile(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userID := c.GetString("user_id")
+
+	// Validate UUID format
+	if err := validateUserID(userID); err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid user ID", err.Error()))
+		return
+	}
 
 	// Call use case
 	body, err := ac.authUseCase.GetProfile(userID)
@@ -73,7 +92,13 @@ func (ac *AuthController) Profile(c *gin.Context) {
 
 // UpdateProfile updates user profile
 func (ac *AuthController) UpdateProfile(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userID := c.GetString("user_id")
+
+	// Validate UUID format
+	if err := validateUserID(userID); err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid user ID", err.Error()))
+		return
+	}
 
 	var req request.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -93,7 +118,13 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 
 // ChangePassword changes user password
 func (ac *AuthController) ChangePassword(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userID := c.GetString("user_id")
+
+	// Validate UUID format
+	if err := validateUserID(userID); err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid user ID", err.Error()))
+		return
+	}
 
 	var req request.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

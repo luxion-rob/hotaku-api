@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 // TokenServiceImpl implements the token service interface
@@ -20,7 +21,7 @@ func NewTokenService(secretKey string) serviceinf.TokenService {
 }
 
 // GenerateToken generates a new JWT token
-func (s *TokenServiceImpl) GenerateToken(userID uint, email string) (string, error) {
+func (s *TokenServiceImpl) GenerateToken(userID string, email string) (string, error) {
 	return utils.GenerateToken(userID, email)
 }
 
@@ -47,11 +48,15 @@ func (s *TokenServiceImpl) ValidateToken(tokenString string) (*serviceinf.TokenC
 		}
 
 		// extract and validate user_id
-		userIDFloat, ok := claims["user_id"].(float64)
+		userID, ok := claims["user_id"].(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid user_id claim type")
 		}
-		userID := uint(userIDFloat)
+
+		// Validate UUID format
+		if _, err := uuid.Parse(userID); err != nil {
+			return nil, fmt.Errorf("invalid user_id format: %w", err)
+		}
 
 		// extract and validate email
 		email, ok := claims["email"].(string)

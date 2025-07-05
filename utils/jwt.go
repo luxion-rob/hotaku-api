@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 var jwtSecret = func() []byte {
@@ -20,12 +21,12 @@ var jwtSecret = func() []byte {
 }()
 
 type Claims struct {
-	UserID uint   `json:"user_id"`
+	UserID string `json:"user_id"`
 	Email  string `json:"email"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint, email string) (string, error) {
+func GenerateToken(userID string, email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		UserID: userID,
@@ -51,6 +52,11 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 	if !token.Valid {
 		return nil, fmt.Errorf("token is invalid or expired")
+	}
+
+	// Validate UUID format for UserID
+	if _, err := uuid.Parse(claims.UserID); err != nil {
+		return nil, fmt.Errorf("invalid user_id format: %w", err)
 	}
 
 	return claims, nil
