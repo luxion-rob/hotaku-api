@@ -1,4 +1,4 @@
-.PHONY: help build run test test-coverage fmt lint migrate-up migrate-down migrate-status docker-up docker-down clean test-local docker-prod-up generate-secrets create-env test-db fix-mysql-permissions setup-env-files
+.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env-files migrate-force
 
 # Default target
 help: ## 🚀 Show this help message
@@ -45,7 +45,7 @@ migrate-up: .ensure-migrate-script ## 🗄️ Run database migrations
 
 # Rollback database migrations
 migrate-down: .ensure-migrate-script ## 🗄️ Rollback to specific version
-	@bash scripts/migrate.sh down $(version)
+	@bash scripts/migrate.sh down "$(version)"
 
 # Show migration status
 migrate-status: .ensure-migrate-script ## 🗄️ Show migration status

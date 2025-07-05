@@ -107,75 +107,48 @@ wait_for_db() {
     fi
 }
 
-# Run migrations up
-migrate_up() {
-    print_status "Running migrations up..."
+# Helper function to run migration commands (Docker vs local)
+run_migration_cmd() {
+    local action=$1
+    local extra_args=$2
+    local description=$3
+    
+    print_status "$description..."
     
     # Check if we're running in Docker environment
     if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
-        print_status "Docker MySQL container is running, running migrations inside Docker..."
+        print_status "Docker MySQL container is running, running $action inside Docker..."
         check_go
-        load_env
         wait_for_db
+        load_env
         
         # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=up
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action="$action" $extra_args
     else
-        print_status "Docker MySQL container not running, running migrations locally..."
+        print_status "Docker MySQL container not running, running $action locally..."
         check_go
-        load_env
         wait_for_db
-        go run ../cmd/migrate/main.go -action=up
+        load_env
+        go run ../cmd/migrate/main.go -action="$action" $extra_args
     fi
-    
+}
+
+# Run migrations up
+migrate_up() {
+    run_migration_cmd "up" "" "Running migrations up"
     print_status "Migrations completed!"
 }
 
 # Run migrations down
 migrate_down() {
     local version=${1:-0}
-    print_status "Rolling back to version $version..."
-    
-    # Check if we're running in Docker environment
-    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
-        print_status "Docker MySQL container is running, running rollback inside Docker..."
-        check_go
-        wait_for_db
-        load_env
-        
-        # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=down -version="$version"
-    else
-        print_status "Docker MySQL container not running, running rollback locally..."
-        check_go
-        wait_for_db
-        load_env
-        go run ../cmd/migrate/main.go -action=down -version="$version"
-    fi
-    
+    run_migration_cmd "down" "-version=\"$version\"" "Rolling back to version $version"
     print_status "Rollback completed! Target version: $version"
 }
 
 # Show migration status
 show_status() {
-    print_status "Migration status:"
-    
-    # Check if we're running in Docker environment
-    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
-        print_status "Docker MySQL container is running, checking status inside Docker..."
-        check_go
-        wait_for_db
-        load_env
-        
-        # Run migration status inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=status
-    else
-        print_status "Docker MySQL container not running, checking status locally..."
-        check_go
-        wait_for_db
-        load_env
-        go run ../cmd/migrate/main.go -action=status
-    fi
+    run_migration_cmd "status" "" "Checking migration status"
 }
 
 # Force migration version
@@ -185,20 +158,7 @@ force_version() {
         print_error "No version specified. Usage: make migrate-force version=18"
         exit 1
     fi
-    print_status "Forcing migration version to $version..."
-    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
-        print_status "Docker MySQL container is running, forcing version inside Docker..."
-        check_go
-        wait_for_db
-        load_env
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=force -version="$version"
-    else
-        print_status "Docker MySQL container not running, forcing version locally..."
-        check_go
-        wait_for_db
-        load_env
-        go run ../cmd/migrate/main.go -action=force -version="$version"
-    fi
+    run_migration_cmd "force" "-version=\"$version\"" "Forcing migration version to $version"
 }
 
 # Main script logic
