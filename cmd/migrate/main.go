@@ -9,8 +9,8 @@ import (
 
 func main() {
 	var (
-		action = flag.String("action", "up", "Migration action: up, down")
-		steps  = flag.Int("steps", 1, "Number of steps for rollback (only used with down action)")
+		action  = flag.String("action", "up", "Migration action: up, down, force, status")
+		version = flag.Int("version", 0, "Target version for down action, or version to force")
 	)
 	flag.Parse()
 
@@ -21,18 +21,27 @@ func main() {
 		}
 
 	case "down":
-		if *steps <= 0 {
-			log.Fatalf("steps must be > 0 (got %d)", *steps)
+		if *version < 0 {
+			log.Fatalf("version must be >= 0 (got %d)", *version)
 		}
-		if err := migration.RollbackMigrations(*steps); err != nil {
+		if err := migration.RollbackMigrations(*version); err != nil {
 			log.Fatal("Rollback failed:", err)
 		}
 
+	case "force":
+		if *version < 0 {
+			log.Fatalf("version must be >= 0 (got %d)", *version)
+		}
+		if err := migration.ForceVersion(*version); err != nil {
+			log.Fatal("Force version failed:", err)
+		}
+
+	case "status":
+		if err := migration.ShowMigrationStatus(); err != nil {
+			log.Fatal("Status failed:", err)
+		}
+
 	default:
-		log.Println("Usage: go run ../cmd/migrate/main.go -action=[up|down] [-steps=n]")
-		log.Println("Examples:")
-		log.Println("  go run cmd/migrate/main.go -action=up")
-		log.Println("  go run cmd/migrate/main.go -action=down -steps=1")
 		os.Exit(1)
 	}
 }

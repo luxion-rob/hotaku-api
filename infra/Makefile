@@ -44,8 +44,8 @@ migrate-up: .ensure-migrate-script ## 🗄️ Run database migrations
 	@bash scripts/migrate.sh up
 
 # Rollback database migrations
-migrate-down: .ensure-migrate-script ## 🗄️ Rollback last migration
-	@bash scripts/migrate.sh down
+migrate-down: .ensure-migrate-script ## 🗄️ Rollback to specific version
+	@bash scripts/migrate.sh down $(version)
 
 # Show migration status
 migrate-status: .ensure-migrate-script ## 🗄️ Show migration status
@@ -53,6 +53,10 @@ migrate-status: .ensure-migrate-script ## 🗄️ Show migration status
 
 .ensure-migrate-script:
 	@chmod +x scripts/migrate.sh
+
+# Force migration version (usage: make migrate-force version=18)
+migrate-force: ## Force migration version (usage: make migrate-force version=18)
+	@bash scripts/migrate.sh force $(version)
 
 # Clean up Docker containers and volumes
 clean: ## 🧹 Clean up containers, volumes, and Docker cache

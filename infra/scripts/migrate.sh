@@ -55,13 +55,15 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  up              Run all pending migrations"
-    echo "  down [steps]    Rollback migrations (default: 1 step)"
+    echo "  down [version]  Rollback to specific version (default: 0)"
+    echo "  force [version] Force migration to specific version"
     echo "  status          Show migration status"
     echo "  help            Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 up"
-    echo "  $0 down 2"
+    echo "  $0 down version=5       # Rollback to version 5"
+    echo "  $0 force version=3      # Force to version 3"
     echo "  $0 status"
 }
 
@@ -131,8 +133,8 @@ migrate_up() {
 
 # Run migrations down
 migrate_down() {
-    local steps=${1:-1}
-    print_status "Rolling back $steps migration(s)..."
+    local version=${1:-0}
+    print_status "Rolling back to version $version..."
     
     # Check if we're running in Docker environment
     if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
@@ -142,23 +144,61 @@ migrate_down() {
         load_env
         
         # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=down -steps="$steps"
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=down -version="$version"
     else
         print_status "Docker MySQL container not running, running rollback locally..."
         check_go
         wait_for_db
         load_env
-    go run ../cmd/migrate/main.go -action=down -steps="$steps"
+        go run ../cmd/migrate/main.go -action=down -version="$version"
     fi
     
-    print_status "Rollback completed! $steps"
+    print_status "Rollback completed! Target version: $version"
 }
 
 # Show migration status
 show_status() {
     print_status "Migration status:"
-    # This would require additional implementation to show current migration version
-    print_warning "Status command not implemented yet"
+    
+    # Check if we're running in Docker environment
+    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
+        print_status "Docker MySQL container is running, checking status inside Docker..."
+        check_go
+        wait_for_db
+        load_env
+        
+        # Run migration status inside the API container
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=status
+    else
+        print_status "Docker MySQL container not running, checking status locally..."
+        check_go
+        wait_for_db
+        load_env
+        go run ../cmd/migrate/main.go -action=status
+    fi
+}
+
+# Force migration version
+force_version() {
+    local version=$1
+    if [ -z "$version" ]; then
+        print_error "No version specified. Usage: make migrate-force version=18"
+        exit 1
+    fi
+    print_status "Forcing migration version to $version..."
+    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
+        print_status "Docker MySQL container is running, forcing version inside Docker..."
+        check_go
+        wait_for_db
+        load_env
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=force -version=$version
+    else
+        print_status "Docker MySQL container not running, forcing version locally..."
+        check_go
+        wait_for_db
+        load_env
+        go run ../cmd/migrate/main.go -action=force -version=$version
+    fi
 }
 
 # Main script logic
@@ -171,6 +211,9 @@ case "$1" in
         ;;
     "status")
         show_status
+        ;;
+    "force")
+        force_version $2
         ;;
     "help"|"")
         show_help
