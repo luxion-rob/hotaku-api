@@ -55,7 +55,7 @@ migrate-status: .ensure-migrate-script ## 🗄️ Show migration status
 	@chmod +x scripts/migrate.sh
 
 # Force migration version (usage: make migrate-force version=18)
-migrate-force: ## Force migration version (usage: make migrate-force version=18)
+migrate-force: .ensure-migrate-script ## Force migration version (usage: make migrate-force version=18)
 	@bash scripts/migrate.sh force $(version)
 
 # Clean up Docker containers and volumes

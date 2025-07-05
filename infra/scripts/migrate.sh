@@ -191,13 +191,13 @@ force_version() {
         check_go
         wait_for_db
         load_env
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=force -version=$version
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action=force -version="$version"
     else
         print_status "Docker MySQL container not running, forcing version locally..."
         check_go
         wait_for_db
         load_env
-        go run ../cmd/migrate/main.go -action=force -version=$version
+        go run ../cmd/migrate/main.go -action=force -version="$version"
     fi
 }
 
@@ -207,13 +207,13 @@ case "$1" in
         migrate_up
         ;;
     "down")
-        migrate_down $2
+        migrate_down "$2"
         ;;
     "status")
         show_status
         ;;
     "force")
-        force_version $2
+        force_version "$2"
         ;;
     "help"|"")
         show_help
