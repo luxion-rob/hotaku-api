@@ -59,7 +59,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 
 // Profile retrieves user profile
 func (ac *AuthController) Profile(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userID := c.GetString("user_id")
 
 	// Call use case
 	body, err := ac.authUseCase.GetProfile(userID)
@@ -73,7 +73,7 @@ func (ac *AuthController) Profile(c *gin.Context) {
 
 // UpdateProfile updates user profile
 func (ac *AuthController) UpdateProfile(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userID := c.GetString("user_id")
 
 	var req request.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -93,7 +93,7 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 
 // ChangePassword changes user password
 func (ac *AuthController) ChangePassword(c *gin.Context) {
-	userID := c.GetUint("user_id")
+	userID := c.GetString("user_id")
 
 	var req request.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

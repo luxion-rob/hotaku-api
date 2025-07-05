@@ -20,12 +20,12 @@ var jwtSecret = func() []byte {
 }()
 
 type Claims struct {
-	UserID uint   `json:"user_id"`
+	UserID string `json:"user_id"`
 	Email  string `json:"email"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint, email string) (string, error) {
+func GenerateToken(userID string, email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		UserID: userID,

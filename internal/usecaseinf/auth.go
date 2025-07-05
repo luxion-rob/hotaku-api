@@ -12,9 +12,9 @@ type AuthUseCase interface {
 	// Login authenticates a user and returns authentication response with token
 	Login(req *request.LoginRequest) (*dto.AuthResponse, error)
 	// GetProfile retrieves user profile information by user ID
-	GetProfile(userID uint) (*dto.UserDTO, error)
+	GetProfile(userID string) (*dto.UserDTO, error)
 	// UpdateProfile updates user profile information
-	UpdateProfile(userID uint, req *request.UpdateProfileRequest) (*dto.UserDTO, error)
+	UpdateProfile(userID string, req *request.UpdateProfileRequest) (*dto.UserDTO, error)
 	// ChangePassword updates user password after validation
-	ChangePassword(userID uint, req *request.ChangePasswordRequest) error
+	ChangePassword(userID string, req *request.ChangePasswordRequest) error
 }
