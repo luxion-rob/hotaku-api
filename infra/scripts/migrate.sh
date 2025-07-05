@@ -123,13 +123,13 @@ run_migration_cmd() {
         load_env
         
         # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action="$action" $extra_args
+        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action="$action" "$extra_args"
     else
         print_status "Docker MySQL container not running, running $action locally..."
         check_go
         wait_for_db
         load_env
-        go run ../cmd/migrate/main.go -action="$action" $extra_args
+        go run ../cmd/migrate/main.go -action="$action" "$extra_args"
     fi
 }
 
