@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 // TokenServiceImpl implements the token service interface
@@ -50,6 +51,11 @@ func (s *TokenServiceImpl) ValidateToken(tokenString string) (*serviceinf.TokenC
 		userID, ok := claims["user_id"].(string)
 		if !ok {
 			return nil, fmt.Errorf("invalid user_id claim type")
+		}
+
+		// Validate UUID format
+		if _, err := uuid.Parse(userID); err != nil {
+			return nil, fmt.Errorf("invalid user_id format: %w", err)
 		}
 
 		// extract and validate email
