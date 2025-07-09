@@ -37,7 +37,7 @@ func NewMinIOService(cfg *config.Config) (*MinIOService, error) {
 	}
 
 	// Ensure bucket exists
-	if err := service.ensureBucketExists(); err != nil {
+	if err := service.ensureBucketExists(true); err != nil {
 		return nil, fmt.Errorf("failed to ensure bucket exists: %w", err)
 	}
 
