@@ -1,30 +1,32 @@
 package response
 
 import (
-	"net/http"
 	"time"
 )
 
+// BaseResponse represents the base response for all API responses
 type BaseResponse struct {
-	StatusCode int         `json:"statuscode"`
-	Message    string      `json:"message"`
-	Data       interface{} `json:"data,omitempty"`
-	Error      interface{} `json:"error,omitempty"`
-	Timestamp  int64       `json:"timestamp"`
+	StatusCode int    `json:"statuscode"`
+	Message    string `json:"message"`
+	Data       any    `json:"data,omitempty"`
+	Error      any    `json:"error,omitempty"`
+	Timestamp  int64  `json:"timestamp"`
 }
 
-func SuccessResponse(message string, data interface{}) *BaseResponse {
+// SuccessResponse returns a new success response
+func SuccessResponse(code int, message string, data any) *BaseResponse {
 	return &BaseResponse{
-		StatusCode: http.StatusOK,
+		StatusCode: code,
 		Message:    message,
 		Data:       data,
 		Timestamp:  time.Now().Unix(),
 	}
 }
 
-func ErrorResponse(message string, error interface{}) *BaseResponse {
+// ErrorResponse returns a new error response
+func ErrorResponse(code int, message string, error any) *BaseResponse {
 	return &BaseResponse{
-		StatusCode: http.StatusInternalServerError,
+		StatusCode: code,
 		Message:    message,
 		Error:      error,
 		Timestamp:  time.Now().Unix(),

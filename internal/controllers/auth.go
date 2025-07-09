@@ -27,36 +27,36 @@ func NewAuthController(authUseCase usecaseinf.AuthUseCase) *AuthController {
 func (ac *AuthController) Register(c *gin.Context) {
 	var req request.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
 	body, err := ac.authUseCase.Register(&req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Registration failed", err.Error()))
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Registration failed", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse("User registered successfully", body))
+	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "User registered successfully", body))
 }
 
 // Login handles user login
 func (ac *AuthController) Login(c *gin.Context) {
 	var req request.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
 	body, err := ac.authUseCase.Login(&req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Login failed", err.Error()))
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Login failed", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse("Login successful", body))
+	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Login successful", body))
 }
 
 // validateUserID validates that the userID is a valid UUID format
@@ -76,18 +76,18 @@ func (ac *AuthController) Profile(c *gin.Context) {
 
 	// Validate UUID format
 	if err := validateUserID(userID); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid user ID", err.Error()))
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid user ID", err.Error()))
 		return
 	}
 
 	// Call use case
 	body, err := ac.authUseCase.GetProfile(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Failed to get profile", err.Error()))
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to get profile", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse("Profile retrieved successfully", body))
+	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Profile retrieved successfully", body))
 }
 
 // UpdateProfile updates user profile
@@ -96,24 +96,24 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 
 	// Validate UUID format
 	if err := validateUserID(userID); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid user ID", err.Error()))
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid user ID", err.Error()))
 		return
 	}
 
 	var req request.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
 	body, err := ac.authUseCase.UpdateProfile(userID, &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Failed to update profile", err.Error()))
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to update profile", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse("Profile updated successfully", body))
+	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Profile updated successfully", body))
 }
 
 // ChangePassword changes user password
@@ -122,22 +122,22 @@ func (ac *AuthController) ChangePassword(c *gin.Context) {
 
 	// Validate UUID format
 	if err := validateUserID(userID); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid user ID", err.Error()))
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid user ID", err.Error()))
 		return
 	}
 
 	var req request.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, response.ErrorResponse("Invalid request data", err.Error()))
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid request data", err.Error()))
 		return
 	}
 
 	// Call use case
 	err := ac.authUseCase.ChangePassword(userID, &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.ErrorResponse("Failed to change password", err.Error()))
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to change password", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse("Password changed successfully", nil))
+	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Password changed successfully", nil))
 }
