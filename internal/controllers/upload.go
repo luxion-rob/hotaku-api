@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -176,15 +174,6 @@ func (c *UploadController) GetImage(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Object name is required", nil))
 		return
 	}
-
-	// Sanitize object name
-	objectName = strings.TrimPrefix(objectName, "/")
-	cleanName := path.Clean(objectName)
-	if strings.Contains(cleanName, "..") {
-		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid object name", nil))
-		return
-	}
-	log.Println("objectName", objectName)
 
 	// Get the object from MinIO
 	obj, err := c.minioService.GetObject(objectName)
