@@ -8,9 +8,8 @@ services:
     volumes:
       - ../../:/app
     working_dir: /app
-    env_file:
-      - .env
     environment:
+      - PORT=${PORT}
       - GIN_MODE=${GIN_MODE}
       - GO111MODULE=on
       - DB_HOST=mysql

@@ -16,16 +16,16 @@ help: ## 🚀 Show this help message
 
 # Start Docker containers (development)
 docker-up: ## 🐳 Start development containers
-	docker compose -f docker/docker-compose.yml up -d
+	docker compose --env-file ../.env -f docker/docker-compose.yml up -d
 
 # Start Docker containers (production with secrets)
 docker-prod-up: .ensure-secrets ## 🐳 Start production containers (requires secrets)
-	docker compose -f docker/docker-compose.prod.yml up -d
+	docker compose --env-file ../.env -f docker/docker-compose.prod.yml up -d
 
 # Stop Docker containers
 docker-down: ## 🐳 Stop all containers
-	docker compose -f docker/docker-compose.yml down
-	docker compose -f docker/docker-compose.prod.yml down
+	docker compose --env-file ../.env -f docker/docker-compose.yml down
+	docker compose --env-file ../.env -f docker/docker-compose.prod.yml down
 
 # Generate secure secrets for production
 generate-secrets: ## 🔐 Generate secure secrets for production
@@ -64,8 +64,8 @@ migrate-force: .ensure-migrate-script ## 🗄️ Force migration version (usage:
 
 # Clean up Docker containers and volumes
 clean: ## 🧹 Clean up containers, volumes, and Docker cache
-	docker compose -f docker/docker-compose.yml down -v
-	docker compose -f docker/docker-compose.prod.yml down -v
+	docker compose --env-file ../.env -f docker/docker-compose.yml down -v
+	docker compose --env-file ../.env -f docker/docker-compose.prod.yml down -v
 	docker system prune -f
 
 # Development setup - start containers and run migrations
@@ -73,5 +73,5 @@ dev-setup: docker-up ## 🛠️ Setup development environment (Docker + DB + Mig
 	@make migrate-up
 
 # Setup environment files
-setup-env-files: ## 🔧 Copy environment files to required locations
-	@bash scripts/setup-env-files.sh
+setup-env: ## 🔧 Copy environment files to required locations
+	@bash scripts/setup-env.sh
