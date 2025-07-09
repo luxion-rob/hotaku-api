@@ -1,0 +1,255 @@
+package controllers
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"path"
+	"path/filepath"
+	"strings"
+
+	"hotaku-api/internal/domain/dto"
+	"hotaku-api/internal/domain/response"
+	"hotaku-api/internal/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+// UploadController handles file upload operations
+type UploadController struct {
+	minioService *service.MinIOService
+}
+
+// NewUploadController creates a new upload controller
+func NewUploadController(minioService *service.MinIOService) *UploadController {
+	return &UploadController{
+		minioService: minioService,
+	}
+}
+
+// UploadMangaImage handles manga image upload
+func (c *UploadController) UploadMangaImage(ctx *gin.Context) {
+	mangaID := ctx.Param("manga_id")
+	if mangaID == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Manga ID is required", nil))
+		return
+	}
+
+	// Get the uploaded file
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Failed to get uploaded file: "+err.Error(), nil))
+		return
+	}
+
+	// Validate file type
+	if !isValidImageFile(file.Filename) {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid file type. Only image files (jpg, jpeg, png, gif, webp) are allowed", nil))
+		return
+	}
+
+	// Validate file size (max 10MB)
+	if file.Size > 10*1024*1024 {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "File size too large. Maximum size is 10MB", nil))
+		return
+	}
+
+	// Upload to MinIO
+	fileURL, err := c.minioService.UploadMangaImage(file, mangaID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to upload file: "+err.Error(), nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File uploaded successfully", dto.UploadResponse{
+		URL:      fileURL,
+		Filename: file.Filename,
+		Size:     file.Size,
+	}))
+}
+
+// UploadChapterPages handles chapter pages upload
+func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
+	mangaID := ctx.Param("manga_id")
+	chapterID := ctx.Param("chapter_id")
+
+	if mangaID == "" || chapterID == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Manga ID and Chapter ID are required", nil))
+		return
+	}
+
+	// Get the uploaded files
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Failed to get uploaded files: "+err.Error(), nil))
+		return
+	}
+
+	files := form.File["pages"]
+	if len(files) == 0 {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "No files uploaded", nil))
+		return
+	}
+
+	var uploadResponses []dto.UploadResponse
+
+	// Upload each file
+	for i, file := range files {
+		// Validate file type
+		if !isValidImageFile(file.Filename) {
+			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid file type for "+file.Filename+". Only image files are allowed", nil))
+			return
+		}
+
+		// Validate file size (max 10MB per file)
+		if file.Size > 10*1024*1024 {
+			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "File size too large for "+file.Filename+". Maximum size is 10MB", nil))
+			return
+		}
+
+		// Upload to MinIO
+		fileURL, err := c.minioService.UploadChapterPage(file, mangaID, chapterID, i+1)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to upload file "+file.Filename+": "+err.Error(), nil))
+			return
+		}
+
+		uploadResponses = append(uploadResponses, dto.UploadResponse{
+			URL:      fileURL,
+			Filename: file.Filename,
+			Size:     file.Size,
+		})
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Files uploaded successfully", uploadResponses))
+}
+
+// DeleteFile handles file deletion
+func (c *UploadController) DeleteFile(ctx *gin.Context) {
+	objectName := ctx.Param("object_name")
+	if objectName == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Object name is required", nil))
+		return
+	}
+
+	err := c.minioService.DeleteFile(objectName)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to delete file: "+err.Error(), nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File deleted successfully", nil))
+}
+
+// GetFileInfo gets file information
+func (c *UploadController) GetFileInfo(ctx *gin.Context) {
+	objectName := ctx.Param("object_name")
+	if objectName == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Object name is required", nil))
+		return
+	}
+
+	// Remove /info suffix to get the actual object name
+	objectName = strings.TrimSuffix(objectName, "/info")
+
+	// Trim leading slash for wildcard parameter
+	if len(objectName) > 0 && objectName[0] == '/' {
+		objectName = objectName[1:]
+	}
+
+	size, err := c.minioService.GetFileSize(objectName)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to get file info: "+err.Error(), nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File info retrieved successfully", dto.FileInfoResponse{
+		ObjectName: objectName,
+		Size:       size,
+	}))
+}
+
+// GetImage retrieves and serves an image file
+func (c *UploadController) GetImage(ctx *gin.Context) {
+	objectName := ctx.Param("object_name")
+	if objectName == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Object name is required", nil))
+		return
+	}
+
+	// Sanitize object name
+	objectName = strings.TrimPrefix(objectName, "/")
+	cleanName := path.Clean(objectName)
+	if strings.Contains(cleanName, "..") {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid object name", nil))
+		return
+	}
+	log.Println("objectName", objectName)
+
+	// Get the object from MinIO
+	obj, err := c.minioService.GetObject(objectName)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to retrieve image: "+err.Error(), nil))
+		return
+	}
+	defer obj.Close()
+
+	// Get object info for content type and size
+	objInfo, err := obj.Stat()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to get image info: "+err.Error(), nil))
+		return
+	}
+
+	// Determine content type based on file extension
+	contentType := objInfo.ContentType
+	if contentType == "application/octet-stream" {
+		contentType = getImageContentType(objectName)
+	}
+
+	// Set appropriate headers
+	ctx.Header("Content-Type", contentType)
+	ctx.Header("Content-Length", fmt.Sprintf("%d", objInfo.Size))
+	ctx.Header("Cache-Control", "public, max-age=31536000") // Cache for 1 year
+	ctx.Header("Access-Control-Allow-Origin", "*")
+
+	// Stream the file to the response
+	ctx.DataFromReader(http.StatusOK, objInfo.Size, contentType, obj, nil)
+}
+
+// isValidImageFile checks if the file is a valid image
+func isValidImageFile(filename string) bool {
+	validExtensions := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".gif":  true,
+		".webp": true,
+	}
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	return validExtensions[ext]
+}
+
+// getImageContentType determines the MIME type based on file extension
+func getImageContentType(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
+	case ".svg":
+		return "image/svg+xml"
+	case ".bmp":
+		return "image/bmp"
+	case ".ico":
+		return "image/x-icon"
+	default:
+		return "application/octet-stream"
+	}
+}

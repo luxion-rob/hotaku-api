@@ -1,4 +1,4 @@
-.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env-files migrate-force
+.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env-files migrate-force seed-roles seed-all
 
 # Default target
 help: ## 🚀 Show this help message
@@ -71,6 +71,14 @@ clean: ## 🧹 Clean up containers, volumes, and Docker cache
 # Development setup - start containers and run migrations
 dev-setup: docker-up ## 🛠️ Setup development environment (Docker + DB + Migrations)
 	@make migrate-up
+
+# Setup MinIO bucket and policy
+setup-minio: ## 🪣 Setup MinIO bucket and access policy
+	@echo "Setting up MinIO bucket..."
+	@docker exec hotaku-minio mc alias set myminio http://localhost:9000 minioadmin minioadmin
+	@docker exec hotaku-minio mc mb myminio/manga-images --ignore-existing
+	@docker exec hotaku-minio mc anonymous set download myminio/manga-images
+	@echo "MinIO setup completed!"
 
 # Setup environment files
 setup-env-files: ## 🔧 Copy environment files to required locations
