@@ -45,7 +45,7 @@ func NewMinIOService(cfg *config.Config) (*MinIOService, error) {
 }
 
 // ensureBucketExists creates the bucket if it doesn't exist
-func (s *MinIOService) ensureBucketExists() error {
+func (s *MinIOService) ensureBucketExists(isPublic bool) error {
 	exists, err := s.client.BucketExists(context.Background(), s.bucketName)
 	if err != nil {
 		return err
@@ -57,22 +57,24 @@ func (s *MinIOService) ensureBucketExists() error {
 			return err
 		}
 
-		// Set bucket policy for public read access (optional)
-		policy := `{
-			"Version": "2012-10-17",
-			"Statement": [
-				{
-					"Effect": "Allow",
-					"Principal": {"AWS": "*"},
-					"Action": ["s3:GetObject"],
-					"Resource": ["arn:aws:s3:::` + s.bucketName + `/*"]
-				}
-			]
-		}`
+		if isPublic {
+			// Set bucket policy for public read access (optional)
+			policy := `{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Principal": {"AWS": "*"},
+						"Action": ["s3:GetObject"],
+						"Resource": ["arn:aws:s3:::` + s.bucketName + `/*"]
+					}
+				]
+			}`
 
-		err = s.client.SetBucketPolicy(context.Background(), s.bucketName, policy)
-		if err != nil {
-			return err
+			err = s.client.SetBucketPolicy(context.Background(), s.bucketName, policy)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

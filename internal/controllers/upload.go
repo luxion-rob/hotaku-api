@@ -10,6 +10,8 @@ import (
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/service"
 
+	"mime"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -214,6 +216,9 @@ func isValidImageFile(filename string) bool {
 		".png":  true,
 		".gif":  true,
 		".webp": true,
+		".svg":  true,
+		".bmp":  true,
+		".ico":  true,
 	}
 
 	ext := strings.ToLower(filepath.Ext(filename))
@@ -222,23 +227,8 @@ func isValidImageFile(filename string) bool {
 
 // getImageContentType determines the MIME type based on file extension
 func getImageContentType(filename string) string {
-	ext := strings.ToLower(filepath.Ext(filename))
-	switch ext {
-	case ".jpg", ".jpeg":
-		return "image/jpeg"
-	case ".png":
-		return "image/png"
-	case ".gif":
-		return "image/gif"
-	case ".webp":
-		return "image/webp"
-	case ".svg":
-		return "image/svg+xml"
-	case ".bmp":
-		return "image/bmp"
-	case ".ico":
-		return "image/x-icon"
-	default:
-		return "application/octet-stream"
+	if mimeType := mime.TypeByExtension(filepath.Ext(filename)); mimeType != "" {
+		return mimeType
 	}
+	return "application/octet-stream"
 }
