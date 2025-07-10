@@ -1,4 +1,4 @@
-.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env migrate-force
+.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env migrate-force dev-setup migrate-refresh all test
 
 # Project root directory
 INFRA_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -64,7 +64,7 @@ migrate-refresh: .ensure-migrate-script ## 🗄️ Refresh migrations (rollback 
 	@bash "$(INFRA_DIR)/scripts/migrate.sh" refresh
 
 .ensure-migrate-script:
-	@chmod +x $(INFRA_DIR)/scripts/migrate.sh
+	@chmod +x "$(INFRA_DIR)/scripts/migrate.sh"
 
 # Force migration version (usage: make migrate-force version=18)
 migrate-force: .ensure-migrate-script ## 🗄️ Force migration version (usage: make migrate-force version=18)

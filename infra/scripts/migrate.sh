@@ -28,7 +28,7 @@ print_error() {
 
 # Load environment variables from .env file
 load_env() {
-    if [ -f $ENV_FILE ]; then
+    if [ -f "$ENV_FILE" ]; then
         print_status "Loading environment variables from ($PROJECT_ROOT) file"
         
         # Read .env file line by line and export variables safely
@@ -44,7 +44,7 @@ load_env() {
                 clean_line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
                 eval "export $clean_line"
             fi
-        done < $ENV_FILE
+        done < "$ENV_FILE"
         
         print_status "Environment variables loaded successfully"
     else
