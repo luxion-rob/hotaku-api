@@ -85,13 +85,13 @@ wait_for_db() {
     print_status "Waiting for database to be ready..."
     
     # Check if we're running in Docker environment
-    if docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_FILE ps mysql | grep -q "Up"; then
+    if docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" ps mysql | grep -q "Up"; then
         print_status "Docker MySQL container is running, waiting for it to be ready..."
         max_attempts=30
         attempt=1
         
         while [ $attempt -le $max_attempts ]; do
-            if docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_FILE exec mysql mysqladmin ping -h"localhost" --silent; then
+            if docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" exec mysql mysqladmin ping -h"localhost" --silent; then
                 print_status "Database is ready!"
                 break
             fi
@@ -123,14 +123,14 @@ run_migration_cmd() {
     print_status "$description..."
     
     # Check if we're running in Docker environment
-    if docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_FILE ps mysql | grep -q "Up"; then
+    if docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" ps mysql | grep -q "Up"; then
         print_status "Docker MySQL container is running, running $action inside Docker..."
         check_go
         wait_for_db
         load_env
         
         # Run migration inside the API container
-        docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_FILE exec api go run cmd/migrate/main.go -action="$action" "${extra_args[@]}"
+        docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" exec api go run cmd/migrate/main.go -action="$action" "${extra_args[@]}"
     else
         print_status "Docker MySQL container not running, running $action locally..."
         check_go
