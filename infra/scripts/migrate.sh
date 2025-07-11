@@ -9,6 +9,9 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+PROJECT_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+ENV_FILE="$PROJECT_ROOT/.env"
+DOCKER_COMPOSE_FILE="$PROJECT_ROOT/infra/docker/docker-compose.yml"
 
 # Function to print colored output
 print_status() {
@@ -25,8 +28,8 @@ print_error() {
 
 # Load environment variables from .env file
 load_env() {
-    if [ -f .env ]; then
-        print_status "Loading environment variables from .env file"
+    if [ -f "$ENV_FILE" ]; then
+        print_status "Loading environment variables from ($PROJECT_ROOT) file"
         
         # Read .env file line by line and export variables safely
         while IFS= read -r line; do
@@ -41,11 +44,11 @@ load_env() {
                 clean_line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
                 eval "export $clean_line"
             fi
-        done < .env
+        done < "$ENV_FILE"
         
         print_status "Environment variables loaded successfully"
     else
-        print_error "No .env file found in scripts directory"
+        print_error "No .env file found in project root directory ($PROJECT_ROOT)"
     fi
 }
 
@@ -82,13 +85,13 @@ wait_for_db() {
     print_status "Waiting for database to be ready..."
     
     # Check if we're running in Docker environment
-    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
+    if docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" ps mysql | grep -q "Up"; then
         print_status "Docker MySQL container is running, waiting for it to be ready..."
         max_attempts=30
         attempt=1
         
         while [ $attempt -le $max_attempts ]; do
-            if docker compose -f ./docker/docker-compose.yml exec mysql mysqladmin ping -h"localhost" --silent; then
+            if docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" exec mysql mysqladmin ping -h"localhost" --silent; then
                 print_status "Database is ready!"
                 break
             fi
@@ -120,14 +123,14 @@ run_migration_cmd() {
     print_status "$description..."
     
     # Check if we're running in Docker environment
-    if docker compose -f ./docker/docker-compose.yml ps mysql | grep -q "Up"; then
+    if docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" ps mysql | grep -q "Up"; then
         print_status "Docker MySQL container is running, running $action inside Docker..."
         check_go
         wait_for_db
         load_env
         
         # Run migration inside the API container
-        docker compose -f ./docker/docker-compose.yml exec api go run cmd/migrate/main.go -action="$action" "${extra_args[@]}"
+        docker compose --env-file "$ENV_FILE" -f "$DOCKER_COMPOSE_FILE" exec api go run cmd/migrate/main.go -action="$action" "${extra_args[@]}"
     else
         print_status "Docker MySQL container not running, running $action locally..."
         check_go
