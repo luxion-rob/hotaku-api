@@ -1,4 +1,8 @@
-.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env-files migrate-force seed-roles seed-all
+.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env migrate-force seed-roles seed-all dev-setup migrate-refresh all test
+
+# Project root directory
+INFRA_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+PROJECT_ROOT := $(abspath $(INFRA_DIR)/..)
 
 # Default target
 help: ## 🚀 Show this help message
@@ -16,61 +20,65 @@ help: ## 🚀 Show this help message
 
 # Start Docker containers (development)
 docker-up: ## 🐳 Start development containers
-	docker compose -f docker/docker-compose.yml up -d
+	docker compose --env-file "$(PROJECT_ROOT)/.env" -f "$(INFRA_DIR)/docker/docker-compose.yml" up -d
 
 # Start Docker containers (production with secrets)
 docker-prod-up: .ensure-secrets ## 🐳 Start production containers (requires secrets)
-	docker compose -f docker/docker-compose.prod.yml up -d
+	docker compose --env-file "$(PROJECT_ROOT)/.env" -f "$(INFRA_DIR)/docker/docker-compose.prod.yml" up -d
 
 # Stop Docker containers
 docker-down: ## 🐳 Stop all containers
-	docker compose -f docker/docker-compose.yml down
-	docker compose -f docker/docker-compose.prod.yml down
+	docker compose --env-file "$(PROJECT_ROOT)/.env" -f "$(INFRA_DIR)/docker/docker-compose.yml" down
+	docker compose --env-file "$(PROJECT_ROOT)/.env" -f "$(INFRA_DIR)/docker/docker-compose.prod.yml" down
 
 # Generate secure secrets for production
 generate-secrets: ## 🔐 Generate secure secrets for production
-	@mkdir -p secrets
-	@openssl rand -base64 32 > secrets/db_password.txt
-	@openssl rand -base64 64 > secrets/jwt_secret.txt
+	@echo "Start generate..."
+	@mkdir -p "$(INFRA_DIR)/secrets"
+	@openssl rand -base64 32 > "$(INFRA_DIR)/secrets/db_password.txt"
+	@openssl rand -base64 64 > "$(INFRA_DIR)/secrets/jwt_secret.txt"
+	@echo "Done"
 
 .ensure-secrets:
-	@if [ ! -f secrets/db_password.txt ] || [ ! -f secrets/jwt_secret.txt ]; then \
+	@if [ ! -f "$(INFRA_DIR)/secrets/db_password.txt" ] || [ ! -f "$(INFRA_DIR)/secrets/jwt_secret.txt" ]; then \
 		echo "Error: Secret files not found. Run 'make generate-secrets' first"; \
 		exit 1; \
+	else \
+		echo "✅ Secret files found and ready"; \
 	fi
 
 # Run database migrations
 migrate-up: .ensure-migrate-script ## 🗄️ Run database migrations
-	@bash scripts/migrate.sh up
+	@bash "$(INFRA_DIR)/scripts/migrate.sh" up
 
 # Rollback database migrations
 migrate-down: .ensure-migrate-script ## 🗄️ Rollback to specific version
-	@bash scripts/migrate.sh down "$(version)"
+	@bash "$(INFRA_DIR)/scripts/migrate.sh" down "$(version)"
 
 # Show migration status
 migrate-status: .ensure-migrate-script ## 🗄️ Show migration status
-	@bash scripts/migrate.sh status
+	@bash "$(INFRA_DIR)/scripts/migrate.sh" status
 
 # Refresh migrations (rollback all and run from start)
 migrate-refresh: .ensure-migrate-script ## 🗄️ Refresh migrations (rollback all + run from start)
-	@bash scripts/migrate.sh refresh
+	@bash "$(INFRA_DIR)/scripts/migrate.sh" refresh
 
 .ensure-migrate-script:
-	@chmod +x scripts/migrate.sh
+	@chmod +x "$(INFRA_DIR)/scripts/migrate.sh"
 
 # Force migration version (usage: make migrate-force version=18)
 migrate-force: .ensure-migrate-script ## 🗄️ Force migration version (usage: make migrate-force version=18)
-	@bash scripts/migrate.sh force $(version)
+	@bash "$(INFRA_DIR)/scripts/migrate.sh" force $(version)
 
 # Clean up Docker containers and volumes
 clean: ## 🧹 Clean up containers, volumes, and Docker cache
-	docker compose -f docker/docker-compose.yml down -v
-	docker compose -f docker/docker-compose.prod.yml down -v
+	docker compose --env-file "$(PROJECT_ROOT)/.env" -f "$(INFRA_DIR)/docker/docker-compose.yml" down -v
+	docker compose --env-file "$(PROJECT_ROOT)/.env" -f "$(INFRA_DIR)/docker/docker-compose.prod.yml" down -v
 	docker system prune -f
 
 # Development setup - start containers and run migrations
 dev-setup: docker-up ## 🛠️ Setup development environment (Docker + DB + Migrations)
-	@make migrate-up
+	@$(MAKE) -f "$(INFRA_DIR)/Makefile" migrate-up
 
 # Setup MinIO bucket and policy
 setup-minio: ## 🪣 Setup MinIO bucket and access policy
@@ -81,5 +89,5 @@ setup-minio: ## 🪣 Setup MinIO bucket and access policy
 	@echo "MinIO setup completed!"
 
 # Setup environment files
-setup-env-files: ## 🔧 Copy environment files to required locations
-	@bash scripts/setup-env-files.sh
+setup-env: ## 🔧 Copy environment files to required locations
+	@bash "$(INFRA_DIR)/scripts/setup-env.sh"
