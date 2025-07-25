@@ -3,7 +3,8 @@
 	docker-up docker-down clean docker-prod-up \
 	generate-secrets setup-env \
 	seed-roles seed-all \
-	dev-setup
+	dev-setup \
+	setup-minio
 
 # Project root directory
 INFRA_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))

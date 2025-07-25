@@ -95,7 +95,7 @@ func (s *MinIOService) constructFileURL(filename string) string {
 
 	publicURL := os.Getenv("MINIO_PUBLIC_URL")
 	if publicURL == "" {
-		publicURL = s.client.EndpointURL().String() // fallback nếu chưa đặt
+		publicURL = s.client.EndpointURL().String()
 	}
 
 	return fmt.Sprintf("%s://%s/%s/%s", scheme, publicURL, s.bucketName, filename)
