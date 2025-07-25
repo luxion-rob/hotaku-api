@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"mime/multipart"
+	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"hotaku-api/config"
@@ -12,6 +14,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+const (
+	MaxFileSize = 10 * 1024 * 1024 // 10MB
 )
 
 // MinIOService handles MinIO operations
@@ -86,11 +92,22 @@ func (s *MinIOService) constructFileURL(filename string) string {
 	if s.client.EndpointURL().Scheme == "https" {
 		scheme = "https"
 	}
-	return fmt.Sprintf("%s://%s/%s/%s", scheme, s.client.EndpointURL().Host, s.bucketName, filename)
+
+	publicURL := os.Getenv("MINIO_PUBLIC_URL")
+	if publicURL == "" {
+		publicURL = s.client.EndpointURL().String() // fallback nếu chưa đặt
+	}
+
+	return fmt.Sprintf("%s://%s/%s/%s", scheme, publicURL, s.bucketName, filename)
 }
 
 // UploadMangaImage uploads a manga image file to MinIO
 func (s *MinIOService) UploadMangaImage(file *multipart.FileHeader, mangaID string) (string, error) {
+	// Validate file (e.g., 10MB limit for manga images)
+	if err := s.validateImageFile(file); err != nil {
+		return "", err
+	}
+
 	// Open the uploaded file
 	src, err := file.Open()
 	if err != nil {
@@ -128,6 +145,11 @@ func (s *MinIOService) UploadMangaImage(file *multipart.FileHeader, mangaID stri
 
 // UploadChapterPage uploads a chapter page image to MinIO
 func (s *MinIOService) UploadChapterPage(file *multipart.FileHeader, mangaID, chapterID string, pageNumber int) (string, error) {
+	// Validate file (e.g., 10MB limit for manga images)
+	if err := s.validateImageFile(file); err != nil {
+		return "", err
+	}
+
 	// Open the uploaded file
 	src, err := file.Open()
 	if err != nil {
@@ -235,4 +257,42 @@ func (s *MinIOService) GetObject(objectName string) (*minio.Object, error) {
 		return nil, fmt.Errorf("failed to get object: %w", err)
 	}
 	return obj, nil
+}
+
+// validateImageFile validates the uploaded file
+func (s *MinIOService) validateImageFile(file *multipart.FileHeader) error {
+	// Check file size
+	if file.Size > MaxFileSize {
+		return fmt.Errorf("file size %d exceeds maximum allowed size %d", file.Size, MaxFileSize)
+	}
+
+	// Check content type
+	contentType := file.Header.Get("Content-Type")
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/jpg":  true,
+		"image/png":  true,
+		"image/gif":  true,
+		"image/webp": true,
+	}
+
+	if !allowedTypes[contentType] {
+		return fmt.Errorf("unsupported content type: %s", contentType)
+	}
+
+	// Check file extension
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	allowedExts := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".gif":  true,
+		".webp": true,
+	}
+
+	if !allowedExts[ext] {
+		return fmt.Errorf("unsupported file extension: %s", ext)
+	}
+
+	return nil
 }

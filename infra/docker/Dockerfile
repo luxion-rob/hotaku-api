@@ -15,8 +15,8 @@ RUN apk --no-cache add git wget
 RUN adduser -D -s /bin/sh -u 1001 appuser
 
 # Set Go module cache to a directory the user can write to
-ENV GOMODCACHE=/app/.go-mod-cache
-ENV GOPATH=/app/.go
+ENV GOMODCACHE=/go/pkg/mod
+ENV GOPATH=/go
 
 # Copy go mod files and download dependencies
 COPY go.mod go.sum ./
@@ -33,8 +33,7 @@ COPY main.go ./
 COPY infra/config/.air.toml ./infra/config/.air.toml
 
 # Create Go cache directories and set permissions
-RUN mkdir -p /app/.go-mod-cache /app/.go && \
-    chown -R appuser:appuser /app
+RUN chown -R appuser:appuser /app
 
 # Configure Git to work with the mounted repository
 RUN git config --global --add safe.directory /app

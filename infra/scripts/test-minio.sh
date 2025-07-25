@@ -46,9 +46,12 @@ if docker exec hotaku-minio mc ls myminio/manga-images > /dev/null 2>&1; then
     print_status 0 "Manga-images bucket exists"
 else
     echo -e "${YELLOW}⚠️  Manga-images bucket not found, creating it...${NC}"
-    docker exec hotaku-minio mc mb myminio/manga-images --ignore-existing
-    docker exec hotaku-minio mc policy set download myminio/manga-images
-    print_status 0 "Manga-images bucket created"
+    if docker exec hotaku-minio mc mb myminio/manga-images --ignore-existing && \
+       docker exec hotaku-minio mc policy set download myminio/manga-images; then
+        print_status 0 "Manga-images bucket created"
+    else
+        print_status 1 "Failed to create manga-images bucket"
+    fi
 fi
 
 # Test API health endpoint

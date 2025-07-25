@@ -7,20 +7,22 @@ services:
       - "${APP_PORT:-3000}:3000"
     volumes:
       - ../../:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-workspace:/go
     working_dir: /app
     environment:
       - PORT=${PORT}
       - GIN_MODE=${GIN_MODE}
       - GO111MODULE=on
-      - GOMODCACHE=/app/.go-mod-cache
-      - GOPATH=/app/.go
+      - GOMODCACHE=/go/pkg/mod
+      - GOPATH=/go
       - DB_HOST=mysql
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
-      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
       - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
       - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
       - MINIO_USE_SSL=${MINIO_USE_SSL}
@@ -73,7 +75,7 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_SECRET_ACCESS_KEY}
     command: server /data --console-address ":9001"
     volumes:
-      - ../minio/storage:/data
+      - minio_data:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -91,3 +93,6 @@ services:
 
 volumes:
   mysql_data:
+  go-mod-cache:
+  go-workspace:
+  minio_data:

@@ -44,6 +44,7 @@ type MinIOConfig struct {
 	SecretAccessKey string
 	UseSSL          bool
 	BucketName      string
+	PublicURL       string
 }
 
 // LoadConfig loads configuration from environment variables with defaults
@@ -66,11 +67,12 @@ func LoadConfig() *Config {
 			Env:     getEnv("APP_ENV", ""),
 		},
 		MinIO: MinIOConfig{
-			Endpoint:        getEnv("MINIO_ENDPOINT", "localhost:9000"),
+			Endpoint:        getEnv("MINIO_ENDPOINT", "minio:9000"),
 			AccessKeyID:     getEnv("MINIO_ACCESS_KEY_ID", "minioadmin"),
 			SecretAccessKey: getEnv("MINIO_SECRET_ACCESS_KEY", "minioadmin"),
 			UseSSL:          getEnvAsBool("MINIO_USE_SSL", false),
 			BucketName:      getEnv("MINIO_BUCKET_NAME", "manga-images"),
+			PublicURL:       getEnv("MINIO_PUBLIC_URL", "localhost:9000"),
 		},
 	}
 
@@ -92,6 +94,18 @@ func (c *Config) Validate() error {
 	}
 	if c.Server.Port < 1 || c.Server.Port > 65535 {
 		return fmt.Errorf("server port must be between 1 and 65535 (PORT)")
+	}
+	if c.MinIO.Endpoint == "" {
+		return fmt.Errorf("MinIO endpoint is required (MINIO_ENDPOINT)")
+	}
+	if c.MinIO.AccessKeyID == "" {
+		return fmt.Errorf("MinIO access key ID is required (MINIO_ACCESS_KEY_ID)")
+	}
+	if c.MinIO.SecretAccessKey == "" {
+		return fmt.Errorf("MinIO secret access key is required (MINIO_SECRET_ACCESS_KEY)")
+	}
+	if c.MinIO.BucketName == "" {
+		return fmt.Errorf("MinIO bucket name is required (MINIO_BUCKET_NAME)")
 	}
 	return nil
 }

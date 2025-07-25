@@ -1,4 +1,10 @@
-.PHONY: help migrate-up migrate-down migrate-status docker-up docker-down clean docker-prod-up generate-secrets setup-env migrate-force seed-roles seed-all dev-setup migrate-refresh all test
+.PHONY: help \ 
+	migrate-up migrate-down migrate-status migrate-force migrate-refresh \
+	docker-up docker-down clean docker-prod-up \
+	generate-secrets setup-env \
+	seed-roles seed-all \
+	dev-setup \
+	all test
 
 # Project root directory
 INFRA_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
