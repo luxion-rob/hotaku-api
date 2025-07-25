@@ -19,4 +19,20 @@ func (s *Server) setupRoutes() {
 			protected.PUT("/change-password", s.authController.ChangePassword)
 		}
 	}
+
+	// Setup upload routes
+	upload := s.router.Group("/api/v1/upload")
+	upload.Use(s.authMiddleware) // Require authentication for uploads
+	{
+		upload.POST("/manga/:manga_id/image", s.uploadController.UploadMangaImage)
+		upload.POST("/manga/:manga_id/chapters/:chapter_id/pages", s.uploadController.UploadChapterPages)
+		upload.DELETE("/files/*object_name", s.uploadController.DeleteFile)
+		upload.GET("/files/*object_name", s.uploadController.GetFileInfo)
+	}
+
+	// Setup public image routes (no authentication required)
+	images := s.router.Group("/api/v1/images")
+	{
+		images.GET("/*object_name", s.uploadController.GetImage)
+	}
 }

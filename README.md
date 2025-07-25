@@ -1,82 +1,145 @@
 # Hotaku API
 
-A simple Hello World API built with Go and Gin framework.
+A modern, production-ready manga management API built with Go, Gin framework, and MySQL. Features user authentication, file uploads with MinIO, and comprehensive security measures.
 
-## Prerequisites
+## 🚀 Features
 
-- Docker
-- Docker Compose
+- **🔐 JWT Authentication** - Secure user registration, login, and profile management
+- **📁 File Management** - MinIO integration for manga images and chapter pages
+- **🛡️ Security** - Path traversal protection, input validation, and secure middleware
+- **🗄️ Database** - MySQL with comprehensive migration system
+- **🐳 Docker** - Complete containerized development and production environments
+- **📊 Monitoring** - Health checks and comprehensive logging
+- **🧪 Testing** - Unit and integration tests with coverage reporting
 
-## Getting Started
+## 🏗️ Architecture
 
-1. Start the database and application:
+The project follows clean architecture principles with clear separation of concerns:
+
+```txt
+hotaku-api/
+├── cmd/                    # CLI commands and entry points
+├── config/                 # Configuration management
+├── internal/               # Private application code
+│   ├── controllers/        # HTTP request handlers
+│   ├── domain/            # Business entities and DTOs
+│   ├── middleware/        # HTTP middleware (auth, path sanitization)
+│   ├── repo/              # Data access layer
+│   ├── service/           # Business logic services
+│   ├── server/            # HTTP server setup and routing
+│   └── usecase/           # Application use cases
+├── infra/                 # Infrastructure and DevOps
+│   ├── docker/            # Docker configurations
+│   ├── migrations/        # Database migrations and seeds
+│   └── scripts/           # Development and deployment scripts
+├── utils/                 # Utility functions
+└── main.go               # Application entry point
+```
+
+## 🛠️ Tech Stack
+
+- **Language**: Go 1.24.0
+- **Framework**: Gin v1.10.1
+- **Database**: MySQL 8.0
+- **ORM**: GORM v1.26.0
+- **File Storage**: MinIO
+- **Authentication**: JWT
+- **Containerization**: Docker & Docker Compose
+- **Migrations**: golang-migrate/v4
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Go 1.24+ (for local development)
+- Make (optional, for convenience commands)
+
+### 1. Clone and Setup
 
 ```bash
+git clone <repository-url>
+cd hotaku-api
+```
+
+### 2. Environment Setup
+
+```bash
+# Setup environment files
+make setup-env-files
+
+# Or manually copy the example
+cp infra/scripts/env.example .env
+```
+
+### 3. Start Development Environment
+
+```bash
+# Start all services (MySQL, MinIO, API)
 make dev-setup
-```
 
-Or manually:
-
-```bash
-# Start containers
-docker compose up -d
-
-# Wait for database to be ready, then run migrations
+# Or step by step:
+make docker-up
 make migrate-up
+make setup-minio
 ```
 
-2. The API will be available at `http://localhost:3000`. The application supports hot reloading using Air - any changes you make to the Go files will automatically trigger a rebuild.
+### 4. Access the API
 
-## Environment Configuration
+- **API**: http://localhost:3000
+- **MinIO Console**: http://localhost:9001
+- **MySQL**: localhost:3306
 
-The application uses environment variables for configuration with sensible defaults. You can configure the application by setting these environment variables or creating a `.env` file.
+## 📚 API Endpoints
+
+### Public Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check |
+| `POST` | `/api/v1/auth/register` | User registration |
+| `POST` | `/api/v1/auth/login` | User login |
+| `GET` | `/api/v1/images/*` | Public image access |
+
+### Protected Endpoints (Require JWT)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/auth/profile` | Get user profile |
+| `PUT` | `/api/v1/auth/profile` | Update user profile |
+| `PUT` | `/api/v1/auth/change-password` | Change password |
+| `POST` | `/api/v1/upload/manga/:id/image` | Upload manga image |
+| `POST` | `/api/v1/upload/manga/:id/chapters/:chapter_id/pages` | Upload chapter pages |
+| `DELETE` | `/api/v1/upload/files/*` | Delete file |
+| `GET` | `/api/v1/upload/files/*` | Get file info |
+
+## 🔧 Configuration
 
 ### Environment Variables
 
-#### Database Configuration
-
-- `DB_HOST` - Database host (default: `localhost`)
-- `DB_PORT` - Database port (default: `3306`)
-- `DB_USER` - Database username (default: `root`)
-- `DB_PASSWORD` - Database password (default: `password`)
-- `DB_NAME` - Database name (default: `hotaku_db`)
-
-#### Server Configuration
-
-- `PORT` - Server port (default: `3000`)
-- `GIN_MODE` - Gin framework mode: `debug`, `release`, or `test` (default: `debug`)
-
-#### Application Configuration
-
-- `APP_NAME` - Application name (default: `Hotaku API`)
-- `APP_VERSION` - Application version (default: `1.0.0`)
-- `APP_ENV` - Environment: `development`, `staging`, or `production` (default: `development`)
-
-### Creating a .env File
-
-#### Quick Setup (Recommended)
-
-Use the provided setup script to create your `.env` file:
-
-```bash
-./scripts/setup-env.sh
-```
-
-#### Manual Setup
-
-Alternatively, create a `.env` file manually in the root directory with your custom configuration:
+Create a `.env` file in the root directory:
 
 ```env
 # Database Configuration
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=your_password_here
+DB_PASSWORD=password
 DB_NAME=hotaku_db
 
 # Server Configuration
 PORT=3000
 GIN_MODE=debug
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key
+
+# MinIO Configuration
+MINIO_ENDPOINT=localhost:9000
+MINIO_ACCESS_KEY_ID=minioadmin
+MINIO_SECRET_ACCESS_KEY=minioadmin
+MINIO_USE_SSL=false
+MINIO_BUCKET_NAME=manga-images
 
 # Application Configuration
 APP_NAME=Hotaku API
@@ -84,317 +147,199 @@ APP_VERSION=1.0.0
 APP_ENV=development
 ```
 
-**Note:** The `.env` file is ignored by git for security reasons. Never commit sensitive information like database passwords to version control.
+## 🗄️ Database
 
-### Using godotenv (Optional)
-
-For automatic `.env` file loading, you can install the `godotenv` package:
+### Migration Commands
 
 ```bash
-go get github.com/joho/godotenv
-```
-
-Then load it in your `main.go`:
-
-```go
-import "github.com/joho/godotenv"
-
-func main() {
-    // Load .env file if it exists
-    godotenv.Load()
-    
-    // Rest of your application...
-}
-```
-
-## Database Migrations
-
-The project uses a proper migration system for database schema management.
-
-### Available Migration Commands
-
-```bash
-# Run all pending migrations
+# Run migrations
 make migrate-up
 
-# Rollback the last migration
-make migrate-down
+# Rollback migrations
+make migrate-down version=5
 
-# Show migration status
+# Check migration status
 make migrate-status
 
-# Using the script directly
-./scripts/migrate.sh up
-./scripts/migrate.sh down 2  # rollback 2 migrations
+# Refresh migrations (rollback all + run from start)
+make migrate-refresh
 ```
 
-### Creating New Migrations
+### Database Schema
 
-1. Create new migration files in the `infra/migrations/` directory
-2. Follow the naming convention:
-   - `XXXXXX_description.up.sql` for the forward migration
-   - `XXXXXX_description.down.sql` for the rollback migration
-3. Example:
-   - `000002_add_posts_table.up.sql`
-   - `000002_add_posts_table.down.sql`
+The application includes a comprehensive manga management schema:
 
-## API Endpoints
+- **Users & Authentication**: User accounts with role-based access
+- **Manga Management**: Manga metadata, status, and relationships
+- **Content Management**: Chapters, pages, and file storage
+- **User Interactions**: Favorites, reading progress, notifications
+- **Metadata**: Authors, categories, groups, and statuses
 
-### Public Endpoints
+## 🔐 Security Features
 
-- `GET /health` - Health check endpoint
+### Path Traversal Protection
 
-### Authentication Endpoints
+The API includes middleware that prevents directory traversal attacks:
 
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User login
-
-### Protected Endpoints (require Bearer token)
-
-- `GET /api/profile` - Get user profile
-- `PUT /api/profile` - Update user profile
-
-## Development
-
-The project uses:
-
-- Go 1.22.2
-- Gin web framework v1.10.1
-- Air for hot reloading
-- Docker with development and production configurations
-- GitHub Actions for CI/CD
-- Comprehensive test suite with coverage reporting
-
-## Project Structure
-
-```
-.
-├── main.go              # Main application code
-├── main_test.go         # Main integration tests
-├── go.mod              # Go module definition
-├── controllers/        # HTTP handlers and tests
-├── config/             # Configuration files
-├── utils/              # Utility functions
-├── cmd/                # CLI commands
-├── docs/               # Documentation and GitHub Pages
-├── .github/workflows/  # GitHub Actions workflows
-├── infra/              # Infrastructure and DevOps files
-│   ├── docker/         # Docker configurations
-│   │   ├── docker-compose.yml      # Development environment
-│   │   ├── docker-compose.test.yml # Testing environment
-│   │   ├── Dockerfile              # Production image
-│   │   └── Dockerfile.test         # Testing image
-│   ├── migrations/     # Database migration files
-│   │   ├── migrate.go              # Migration utilities
-│   │   └── sql/                    # SQL migration files
-│   │       ├── 000001_create_users_table.up.sql
-│   │       └── 000001_create_users_table.down.sql
-│   ├── scripts/        # Infrastructure scripts
-│   │   ├── setup-env.sh            # Environment setup
-│   │   ├── migrate.sh              # Migration scripts
-│   │   ├── env.example             # Environment template
-│   │   └── init-test-db.sql        # Test database setup
-│   ├── config/         # Infrastructure configurations
-│   │   └── .air.toml               # Hot reload configuration
-│   └── Makefile        # Development and build commands
+```go
+// Automatically sanitizes wildcard parameters
+images.GET("/*object_name", uploadController.GetImage)
 ```
 
-## Testing
+### Authentication Middleware
 
-The project includes comprehensive test coverage with both unit tests and integration tests:
+JWT-based authentication with secure token validation:
 
-### Unit Tests
+```go
+protected.Use(authMiddleware)
+```
+
+### Input Validation
+
+Comprehensive validation for all user inputs and file uploads.
+
+## 🐳 Docker
+
+### Development
 
 ```bash
-# Run all tests
-make test
+# Start development environment
+make docker-up
 
-# Run tests with coverage
-make test-coverage
+# View logs
+docker compose -f infra/docker/docker-compose.yml logs -f
 
-# Format code
-make fmt
-
-# Run linter
-make lint
+# Stop services
+make docker-down
 ```
 
-### Docker Testing Environment
-
-A complete testing environment is available using Docker Compose:
+### Production
 
 ```bash
-# Start test environment (MySQL + Redis + API)
-make test-env
+# Generate production secrets
+make generate-secrets
 
-# Run tests in containerized environment
-make test-run
-
-# Run integration tests against test API
-make test-integration
-
-# Stop test environment
-make test-env-down
-
-# Clean up test environment completely
-make test-cleanup
+# Start production environment
+make docker-prod-up
 ```
 
-The test environment includes:
+## 🧪 Testing
 
-- **MySQL 8.0** on port 3307 (isolated from development)
-- **Redis 7** on port 6380 (for caching/sessions)
-- **API service** on port 3001 (test configuration)
-- **Test runner** service for automated testing
+### Run Tests
 
-#### Test Environment Configuration
+```bash
+# Unit tests
+go test ./...
 
-- Database: `hotaku_test_db`
-- MySQL User: `root` / Password: `testpassword`
-- Test API URL: `http://localhost:3001`
-- All services run in isolated `test-network`
+# Tests with coverage
+go test -v -race -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
 
-#### Manual Testing Against Test Environment
+# Integration tests
+go test -v ./internal/controllers/...
+```
+
+### Test Environment
 
 ```bash
 # Start test environment
 make test-env
 
-# Test the API
-curl http://localhost:3001/
+# Run tests in containerized environment
+make test-run
 
-# Run your integration tests
-# ... your test commands here ...
-
-# Clean up
-make test-env-down
+# Clean up test environment
+make test-cleanup
 ```
 
-## GitHub Actions CI/CD
-
-This project includes a comprehensive CI/CD pipeline with multiple workflows:
-
-### 🔄 Main CI/CD Pipeline (`.github/workflows/ci-cd.yml`)
-
-Runs on pushes to `main`/`develop` branches:
-
-- **Testing**: Unit tests with MySQL service, coverage reporting
-- **Building**: Go application compilation
-- **Security**: Gosec security scanning
-- **Docker**: Multi-platform container builds
-- **Documentation**: Automatic GitHub Pages deployment
-
-### 🔍 Pull Request Checks (`.github/workflows/pr-check.yml`)
-
-Lightweight validation for pull requests:
-
-- Code formatting checks
-- Tests execution
-- Build verification
-
-### 🚀 Release Workflow (`.github/workflows/release.yml`)
-
-Triggered on version tags (`v*.*.*`):
-
-- Multi-platform binary builds (Linux, Windows, macOS)
-- Automated changelog generation
-- GitHub release creation
-- Docker image publishing
-
-### 📚 GitHub Pages
-
-Documentation is automatically deployed to GitHub Pages:
-
-- API documentation
-- Test coverage reports
-- Project structure and usage guides
-
-## Building for Production
-
-To build a production version:
+## 📦 Development Commands
 
 ```bash
-docker build -t hotaku-api .
+# Format code
+go fmt ./...
+
+# Run linter
+golangci-lint run
+
+# Build application
+go build -o bin/hotaku-api main.go
+
+# Run with hot reload (requires Air)
+air
 ```
 
-To run the production container:
+## 🚀 Deployment
+
+### Production Build
 
 ```bash
-docker run -p 3000:3000 hotaku-api
+# Build production image
+docker build -f infra/docker/Dockerfile -t hotaku-api .
+
+# Run production container
+docker run -p 3000:3000 --env-file .env hotaku-api
 ```
 
-## API Usage Examples
+### Environment Setup
 
-### Register User
+1. Set up MySQL database
+2. Configure MinIO storage
+3. Set environment variables
+4. Run database migrations
+5. Start the application
+
+## 📊 Monitoring
+
+### Health Check
 
 ```bash
-curl -X POST http://localhost:3000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
+curl http://localhost:3000/health
 ```
 
-### Login
-
-```bash
-curl -X POST http://localhost:3000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"john@example.com","password":"password123"}'
-```
-
-### Get Profile
-
-```bash
-curl -X GET http://localhost:3000/api/profile \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Update Profile
-
-```bash
-curl -X PUT http://localhost:3000/api/profile \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Updated","email":"john.updated@example.com"}'
-```
-
-## Response Format
-
-All API responses follow a consistent format:
-
-### Success Response
-
+Response:
 ```json
 {
-  "success": true,
-  "message": "Operation successful",
-  "data": {...},
-  "timestamp": 1640995200
+  "status": "healthy",
+  "message": "API is running smoothly",
+  "timestamp": 1640995200,
+  "version": "1.0.0"
 }
 ```
 
-### Error Response
+### Logging
 
-```json
-{
-  "success": false,
-  "message": "Error message",
-  "error": "Detailed error information",
-  "timestamp": 1640995200
-}
-```
+The application includes structured logging for:
+- Request/response logging
+- Error tracking
+- Performance monitoring
+- Security events
 
-### Validation Error Response
+## 🤝 Contributing
 
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "details": [
-    {
-      "field": "email",
-      "message": "Email is required"
-    }
-  ],
-  "timestamp": 1640995200
-}
-```
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow Go coding standards
+- Write tests for new features
+- Update documentation
+- Use conventional commit messages
+- Ensure all tests pass before submitting PR
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- [API Documentation](./docs/index.md)
+- [Docker Hub](https://hub.docker.com/r/your-username/hotaku-api)
+- [Issue Tracker](https://github.com/your-username/hotaku-api/issues)
+
+---
+
+Built with ❤️ using Go and Gin

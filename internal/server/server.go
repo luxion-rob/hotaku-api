@@ -14,6 +14,7 @@ type Server struct {
 	router           *gin.Engine
 	authController   *controllers.AuthController
 	healthController *controllers.HealthController
+	uploadController *controllers.UploadController
 	authMiddleware   gin.HandlerFunc
 }
 
@@ -21,6 +22,7 @@ type Server struct {
 func NewServer(
 	authController *controllers.AuthController,
 	healthController *controllers.HealthController,
+	uploadController *controllers.UploadController,
 	tokenService serviceinf.TokenService,
 ) *Server {
 	router := gin.Default()
@@ -29,6 +31,7 @@ func NewServer(
 		router:           router,
 		authController:   authController,
 		healthController: healthController,
+		uploadController: uploadController,
 	}
 
 	// Setup middleware

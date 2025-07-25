@@ -24,15 +24,20 @@ func InitializeServer() *Server {
 	}
 	tokenService := service.NewTokenService(jwtSecret)
 
+	// Initialize MinIO service
+	appConfig := config.LoadConfig()
+	minioService := InitializeMinioService(appConfig)
+
 	// Initialize use cases
 	authUseCase := usecase.NewAuthUseCase(userRepo, tokenService)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authUseCase)
 	healthController := controllers.NewHealthController()
+	uploadController := controllers.NewUploadController(minioService)
 
 	// Initialize and return server
-	return NewServer(authController, healthController, tokenService)
+	return NewServer(authController, healthController, uploadController, tokenService)
 }
 
 // InitializeServerWithConfig creates and configures all dependencies with custom config
@@ -50,13 +55,26 @@ func InitializeServerWithConfig(appConfig *config.Config) *Server {
 	}
 	tokenService := service.NewTokenService(jwtSecret)
 
+	// Initialize MinIO service
+	minioService := InitializeMinioService(appConfig)
+
 	// Initialize use cases
 	authUseCase := usecase.NewAuthUseCase(userRepo, tokenService)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authUseCase)
 	healthController := controllers.NewHealthController()
+	uploadController := controllers.NewUploadController(minioService)
 
 	// Initialize and return server
-	return NewServer(authController, healthController, tokenService)
+	return NewServer(authController, healthController, uploadController, tokenService)
+}
+
+// InitializeMinioService initializes the MinIO service
+func InitializeMinioService(appConfig *config.Config) *service.MinIOService {
+	minioService, err := service.NewMinIOService(appConfig)
+	if err != nil {
+		panic("Failed to initialize MinIO service: " + err.Error())
+	}
+	return minioService
 }

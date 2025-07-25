@@ -12,6 +12,7 @@ type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
 	App      AppConfig
+	MinIO    MinIOConfig
 }
 
 // DatabaseConfig holds database configuration
@@ -36,6 +37,16 @@ type AppConfig struct {
 	Env     string
 }
 
+// MinIOConfig holds MinIO configuration
+type MinIOConfig struct {
+	Endpoint        string
+	AccessKeyID     string
+	SecretAccessKey string
+	UseSSL          bool
+	BucketName      string
+	PublicURL       string
+}
+
 // LoadConfig loads configuration from environment variables with defaults
 func LoadConfig() *Config {
 	config := &Config{
@@ -54,6 +65,14 @@ func LoadConfig() *Config {
 			Name:    getEnv("APP_NAME", ""),
 			Version: getEnv("APP_VERSION", ""),
 			Env:     getEnv("APP_ENV", ""),
+		},
+		MinIO: MinIOConfig{
+			Endpoint:        getEnv("MINIO_ENDPOINT", "minio:9000"),
+			AccessKeyID:     getEnv("MINIO_ACCESS_KEY_ID", "minioadmin"),
+			SecretAccessKey: getEnv("MINIO_SECRET_ACCESS_KEY", "minioadmin"),
+			UseSSL:          getEnvAsBool("MINIO_USE_SSL", false),
+			BucketName:      getEnv("MINIO_BUCKET_NAME", "manga-images"),
+			PublicURL:       getEnv("MINIO_PUBLIC_URL", "localhost:9000"),
 		},
 	}
 
@@ -76,6 +95,18 @@ func (c *Config) Validate() error {
 	if c.Server.Port < 1 || c.Server.Port > 65535 {
 		return fmt.Errorf("server port must be between 1 and 65535 (PORT)")
 	}
+	if c.MinIO.Endpoint == "" {
+		return fmt.Errorf("MinIO endpoint is required (MINIO_ENDPOINT)")
+	}
+	if c.MinIO.AccessKeyID == "" {
+		return fmt.Errorf("MinIO access key ID is required (MINIO_ACCESS_KEY_ID)")
+	}
+	if c.MinIO.SecretAccessKey == "" {
+		return fmt.Errorf("MinIO secret access key is required (MINIO_SECRET_ACCESS_KEY)")
+	}
+	if c.MinIO.BucketName == "" {
+		return fmt.Errorf("MinIO bucket name is required (MINIO_BUCKET_NAME)")
+	}
 	return nil
 }
 
@@ -94,6 +125,17 @@ func getEnvAsInt(key string, defaultValue int) int {
 			return intValue
 		}
 		log.Printf("Warning: Invalid integer value for %s: %s, using default: %d", key, value, defaultValue)
+	}
+	return defaultValue
+}
+
+// getEnvAsBool gets environment variable as boolean with fallback to default value
+func getEnvAsBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		if boolValue, err := strconv.ParseBool(value); err == nil {
+			return boolValue
+		}
+		log.Printf("Warning: Invalid boolean value for %s: %s, using default: %t", key, value, defaultValue)
 	}
 	return defaultValue
 }
