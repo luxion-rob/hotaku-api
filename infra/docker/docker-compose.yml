@@ -12,8 +12,6 @@ services:
       - PORT=${PORT}
       - GIN_MODE=${GIN_MODE}
       - GO111MODULE=on
-      - GOMODCACHE=/app/.go-mod-cache
-      - GOPATH=/app/.go
       - DB_HOST=mysql
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}

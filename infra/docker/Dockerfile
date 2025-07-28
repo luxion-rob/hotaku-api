@@ -17,6 +17,10 @@ RUN adduser -D -s /bin/sh -u 1001 appuser
 # Set Go module cache to a directory the user can write to
 ENV GOMODCACHE=/app/.go-mod-cache
 ENV GOPATH=/app/.go
+ENV PATH=$PATH:/app/.go/bin
+
+# Prepare writable cache directories
+RUN mkdir -p /app/.go-mod-cache /app/.go
 
 # Copy go mod files and download dependencies
 COPY go.mod go.sum ./
