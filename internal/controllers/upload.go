@@ -98,14 +98,11 @@ func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
 
 	// Find max existing page number
 	maxPage := 0
-	for _, path := range existingFiles {
-		_, fileName := filepath.Split(path)
-		// Remove file extension before parsing
-		baseName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-		var pageNum int
-		if n, err := fmt.Sscanf(baseName, "page_%03d", &pageNum); err == nil && n == 1 && pageNum > maxPage {
-			maxPage = pageNum
-		}
+	_, fileName := filepath.Split(existingFiles[len(existingFiles)-1])
+	baseName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	var pageNum int
+	if n, err := fmt.Sscanf(baseName, "page_%03d", &pageNum); err == nil && n == 1 && pageNum > maxPage {
+		maxPage = pageNum
 	}
 
 	var uploadResponses []dto.UploadResponse
@@ -141,6 +138,11 @@ func (c *UploadController) ReplacePage(ctx *gin.Context) {
 	chapterID := ctx.Param("chapter_id")
 	pageString := ctx.Param("page")
 
+	if mangaID == "" || chapterID == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Manga ID and Chapter ID are required", nil))
+		return
+	}
+
 	page, err := strconv.Atoi(pageString)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Page must be integer", nil))
@@ -152,8 +154,8 @@ func (c *UploadController) ReplacePage(ctx *gin.Context) {
 		return
 	}
 
-	if mangaID == "" || chapterID == "" {
-		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Manga ID and Chapter ID are required", nil))
+	if page > 999 {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Page number exceeds maximum allowed value", nil))
 		return
 	}
 
