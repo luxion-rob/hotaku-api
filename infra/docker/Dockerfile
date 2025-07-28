@@ -11,6 +11,13 @@ RUN wget -qO /tmp/air.tgz "https://github.com/cosmtrek/air/releases/download/${A
 # Install build tools and wget for healthcheck
 RUN apk --no-cache add git wget
 
+# Create non-root user for security
+RUN adduser -D -s /bin/sh -u 1001 appuser
+
+# Set Go module cache to a directory the user can write to
+ENV GOMODCACHE=/go/pkg/mod
+ENV GOPATH=/go
+
 # Copy go mod files and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
@@ -25,9 +32,11 @@ COPY main.go ./
 # Copy Air configuration
 COPY infra/config/.air.toml ./infra/config/.air.toml
 
-# Create non-root user for security
-RUN adduser -D -s /bin/sh -u 1001 appuser && \
-    chown -R appuser:appuser /app
+# Create Go cache directories and set permissions
+RUN chown -R appuser:appuser /app
+
+# Configure Git to work with the mounted repository
+RUN git config --global --add safe.directory /app
 
 # Expose the app port
 EXPOSE 3000

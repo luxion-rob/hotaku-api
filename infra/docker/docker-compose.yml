@@ -7,19 +7,30 @@ services:
       - "${APP_PORT:-3000}:3000"
     volumes:
       - ../../:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-workspace:/go
     working_dir: /app
     environment:
       - PORT=${PORT}
       - GIN_MODE=${GIN_MODE}
       - GO111MODULE=on
+      - GOMODCACHE=/go/pkg/mod
+      - GOPATH=/go
       - DB_HOST=mysql
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - JWT_SECRET=${JWT_SECRET}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID}
+      - MINIO_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
     depends_on:
       mysql:
+        condition: service_healthy
+      minio:
         condition: service_healthy
     cap_drop:
       - ALL
@@ -54,5 +65,33 @@ services:
       - SETGID
       - SETUID
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY_ID}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_ACCESS_KEY}
+    command: server /data --console-address ":9001"
+    volumes:
+      - ../minio/storage:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 40s
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+
 volumes:
   mysql_data:
+  go-mod-cache:
+  go-workspace:
