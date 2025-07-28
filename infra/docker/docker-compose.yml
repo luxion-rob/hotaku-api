@@ -75,7 +75,7 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_SECRET_ACCESS_KEY}
     command: server /data --console-address ":9001"
     volumes:
-      - minio_data:/data
+      - ../minio/storage:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
@@ -95,4 +95,3 @@ volumes:
   mysql_data:
   go-mod-cache:
   go-workspace:
-  minio_data:
