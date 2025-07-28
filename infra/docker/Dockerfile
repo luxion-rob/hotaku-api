@@ -19,8 +19,9 @@ ENV GOMODCACHE=/app/.go-mod-cache
 ENV GOPATH=/app/.go
 ENV PATH=$PATH:/app/.go/bin
 
-# Prepare writable cache directories
-RUN mkdir -p /app/.go-mod-cache /app/.go
+# Prepare writable Go cache before any build commands
+RUN mkdir -p /app/.go-mod-cache /app/.go && \
+    chown -R appuser:appuser /app
 
 # Copy go mod files and download dependencies
 COPY go.mod go.sum ./
@@ -31,17 +32,13 @@ COPY cmd/ ./cmd/
 COPY config/ ./config/
 COPY internal/ ./internal/
 COPY utils/ ./utils/
-COPY main.go ./
+COPY main.go ./main.go
 
 # Copy Air configuration
 COPY infra/config/.air.toml ./infra/config/.air.toml
 
-# Create Go cache directories and set permissions
-RUN mkdir -p /app/.go-mod-cache /app/.go && \
-    chown -R appuser:appuser /app
-
 # Configure Git to work with the mounted repository
-RUN git config --global --add safe.directory /app
+RUN git config --system --add safe.directory /app
 
 # Expose the app port
 EXPOSE 3000
