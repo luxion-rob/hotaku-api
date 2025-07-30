@@ -69,3 +69,29 @@ func (r *AuthorRepositoryImpl) Delete(id string) error {
 	}
 	return nil
 }
+
+// List retrieves a paginated list of all authors
+func (r *AuthorRepositoryImpl) List(offset, limit int) ([]entities.Author, int64, error) {
+	// Validate parameters
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 || limit > 100 { // assuming 100 as max limit
+		limit = 10 // default limit
+	}
+
+	var authors []entities.Author
+	var total int64
+
+	// Get total count
+	if err := r.db.Model(&entities.Author{}).Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count authors: %w", err)
+	}
+
+	// Get paginated results
+	if err := r.db.Model(&entities.Author{}).Offset(offset).Limit(limit).Find(&authors).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to retrieve authors list: %w", err)
+	}
+
+	return authors, total, nil
+}
