@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
+	"hotaku-api/internal/domain/apperrors"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/usecaseinf"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -66,8 +67,7 @@ func (ac *AuthorController) GetAuthor(c *gin.Context) {
 	// Call use case
 	data, err := ac.authorUseCase.GetAuthor(authorID)
 	if err != nil {
-		// Check if it's a "not found" error
-		if strings.Contains(err.Error(), "not found") {
+		if errors.Is(err, apperrors.ErrAuthorNotFound) {
 			c.JSON(http.StatusNotFound, response.ErrorResponse(http.StatusNotFound, "Author not found", err.Error()))
 			return
 		}
@@ -97,8 +97,7 @@ func (ac *AuthorController) UpdateAuthor(c *gin.Context) {
 	// Call use case
 	data, err := ac.authorUseCase.UpdateAuthor(&req, authorID)
 	if err != nil {
-		// Check if it's a "not found" error
-		if strings.Contains(err.Error(), "not found") {
+		if errors.Is(err, apperrors.ErrAuthorNotFound) {
 			c.JSON(http.StatusNotFound, response.ErrorResponse(http.StatusNotFound, "Author not found", err.Error()))
 			return
 		}
@@ -122,8 +121,7 @@ func (ac *AuthorController) DeleteAuthor(c *gin.Context) {
 	// Call use case
 	err := ac.authorUseCase.DeleteAuthor(authorID)
 	if err != nil {
-		// Check if it's a "not found" error
-		if strings.Contains(err.Error(), "not found") {
+		if errors.Is(err, apperrors.ErrAuthorNotFound) {
 			c.JSON(http.StatusNotFound, response.ErrorResponse(http.StatusNotFound, "Author not found", err.Error()))
 			return
 		}

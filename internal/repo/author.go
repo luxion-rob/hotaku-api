@@ -3,6 +3,7 @@ package repo
 import (
 	"errors"
 	"fmt"
+	"hotaku-api/internal/domain/apperrors"
 	"hotaku-api/internal/domain/entities"
 	"hotaku-api/internal/repoinf"
 
@@ -34,7 +35,7 @@ func (r *AuthorRepositoryImpl) GetByID(id string) (*entities.Author, error) {
 
 	if err := r.db.Where("author_id = ?", id).First(&author).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("author not found")
+			return nil, apperrors.ErrAuthorNotFound
 		}
 
 		return nil, fmt.Errorf("failed to retrieve author by ID: %w", err)
@@ -51,7 +52,7 @@ func (r *AuthorRepositoryImpl) Update(author *entities.Author) error {
 		return fmt.Errorf("failed to update author: %w", res.Error)
 	}
 	if res.RowsAffected == 0 {
-		return fmt.Errorf("author not found")
+		return apperrors.ErrAuthorNotFound
 	}
 	return nil
 }
@@ -64,7 +65,7 @@ func (r *AuthorRepositoryImpl) Delete(id string) error {
 		return fmt.Errorf("failed to delete author: %w", res.Error)
 	}
 	if res.RowsAffected == 0 {
-		return fmt.Errorf("author not found")
+		return apperrors.ErrAuthorNotFound
 	}
 	return nil
 }
