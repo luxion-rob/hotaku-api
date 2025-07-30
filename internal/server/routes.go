@@ -23,10 +23,17 @@ func (s *Server) setupRoutes() {
 	// Setup author routes
 	authors := s.router.Group("/api/v1/authors")
 	{
-		authors.POST("", s.authorController.CreateAuthor)
+		// Public read access
 		authors.GET("/:author_id", s.authorController.GetAuthor)
-		authors.PUT("/:author_id", s.authorController.UpdateAuthor)
-		authors.DELETE("/:author_id", s.authorController.DeleteAuthor)
+
+		// Protected write operations
+		protected := authors.Group("")
+		protected.Use(s.authMiddleware)
+		{
+			protected.POST("", s.authorController.CreateAuthor)
+			protected.PUT("/:author_id", s.authorController.UpdateAuthor)
+			protected.DELETE("/:author_id", s.authorController.DeleteAuthor)
+		}
 	}
 
 	// Setup upload routes
