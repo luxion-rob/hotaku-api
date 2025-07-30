@@ -1,14 +1,13 @@
 package controllers
 
 import (
-	"fmt"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/usecaseinf"
+	"hotaku-api/internal/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // AuthController handles authentication-related HTTP requests
@@ -59,23 +58,12 @@ func (ac *AuthController) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Login successful", body))
 }
 
-// validateUserID validates that the userID is a valid UUID format
-func validateUserID(userID string) error {
-	if userID == "" {
-		return fmt.Errorf("user ID is empty")
-	}
-	if _, err := uuid.Parse(userID); err != nil {
-		return fmt.Errorf("invalid user ID format: %w", err)
-	}
-	return nil
-}
-
 // Profile retrieves user profile
 func (ac *AuthController) Profile(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	// Validate UUID format
-	if err := validateUserID(userID); err != nil {
+	if err := validation.ValidateUUID(userID, "user ID"); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid user ID", err.Error()))
 		return
 	}
@@ -95,7 +83,7 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	// Validate UUID format
-	if err := validateUserID(userID); err != nil {
+	if err := validation.ValidateUUID(userID, "user ID"); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid user ID", err.Error()))
 		return
 	}
@@ -121,7 +109,7 @@ func (ac *AuthController) ChangePassword(c *gin.Context) {
 	userID := c.GetString("user_id")
 
 	// Validate UUID format
-	if err := validateUserID(userID); err != nil {
+	if err := validation.ValidateUUID(userID, "user ID"); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid user ID", err.Error()))
 		return
 	}

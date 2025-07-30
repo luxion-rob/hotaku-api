@@ -2,16 +2,15 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"hotaku-api/internal/domain/apperrors"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/usecaseinf"
+	"hotaku-api/internal/validation"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // AuthorController handles author-related HTTP requests
@@ -24,17 +23,6 @@ func NewAuthorController(authorUseCase usecaseinf.AuthorUseCase) *AuthorControll
 	return &AuthorController{
 		authorUseCase: authorUseCase,
 	}
-}
-
-// validateAuthorID validates that the authorID is a valid UUID format
-func validateAuthorID(authorID string) error {
-	if authorID == "" {
-		return fmt.Errorf("author ID is empty")
-	}
-	if _, err := uuid.Parse(authorID); err != nil {
-		return fmt.Errorf("invalid author ID format: %w", err)
-	}
-	return nil
 }
 
 // CreateAuthor handles author creation
@@ -60,7 +48,7 @@ func (ac *AuthorController) GetAuthor(c *gin.Context) {
 	authorID := c.Param("author_id")
 
 	// Validate UUID format
-	if err := validateAuthorID(authorID); err != nil {
+	if err := validation.ValidateUUID(authorID, "author ID"); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid author ID", err.Error()))
 		return
 	}
@@ -84,7 +72,7 @@ func (ac *AuthorController) UpdateAuthor(c *gin.Context) {
 	authorID := c.Param("author_id")
 
 	// Validate UUID format
-	if err := validateAuthorID(authorID); err != nil {
+	if err := validation.ValidateUUID(authorID, "author ID"); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid author ID", err.Error()))
 		return
 	}
@@ -114,7 +102,7 @@ func (ac *AuthorController) DeleteAuthor(c *gin.Context) {
 	authorID := c.Param("author_id")
 
 	// Validate UUID format
-	if err := validateAuthorID(authorID); err != nil {
+	if err := validation.ValidateUUID(authorID, "author ID"); err != nil {
 		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid author ID", err.Error()))
 		return
 	}
