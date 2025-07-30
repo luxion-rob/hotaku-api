@@ -20,6 +20,15 @@ func (s *Server) setupRoutes() {
 		}
 	}
 
+	// Setup author routes
+	authors := s.router.Group("/api/v1/authors")
+	{
+		authors.POST("", s.authorController.CreateAuthor)
+		authors.GET("/:author_id", s.authorController.GetAuthor)
+		authors.PUT("/:author_id", s.authorController.UpdateAuthor)
+		authors.DELETE("/:author_id", s.authorController.DeleteAuthor)
+	}
+
 	// Setup upload routes
 	upload := s.router.Group("/api/v1/upload")
 	upload.Use(s.authMiddleware) // Require authentication for uploads
