@@ -73,7 +73,7 @@ func (uc *AuthorUseCaseImpl) CreateAuthor(req *request.CreateAuthorRequest) (*dt
 }
 
 // GetAuthor retrieves an author by ID
-func (uc *AuthorUseCaseImpl) GetAuthor(authorID string) (*dto.AuthorResponse, error) {
+func (uc *AuthorUseCaseImpl) GetAuthor(authorID string) (*dto.AuthorDTO, error) {
 	// Validate authorID
 	if err := validateAuthorID(authorID); err != nil {
 		return nil, err
@@ -85,17 +85,14 @@ func (uc *AuthorUseCaseImpl) GetAuthor(authorID string) (*dto.AuthorResponse, er
 		return nil, fmt.Errorf("error: %w", err)
 	}
 
-	// Create response DTO
-	authorResponse := &dto.AuthorResponse{
+	// Create response DTO (simplified version)
+	authorDTO := &dto.AuthorDTO{
 		AuthorID:   author.AuthorID,
-		ExternalID: author.ExternalID,
 		AuthorName: author.AuthorName,
 		AuthorBio:  author.AuthorBio,
-		CreatedAt:  author.CreatedAt,
-		UpdatedAt:  author.UpdatedAt,
 	}
 
-	return authorResponse, nil
+	return authorDTO, nil
 }
 
 // UpdateAuthor handles author updates
@@ -150,4 +147,44 @@ func (uc *AuthorUseCaseImpl) DeleteAuthor(authorID string) error {
 	}
 
 	return nil
+}
+
+// ListAuthors retrieves a paginated list of all authors
+func (uc *AuthorUseCaseImpl) ListAuthors(offset, limit int) (*dto.AuthorListResponse, error) {
+	// Validate pagination parameters
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 {
+		limit = 10 // Default limit
+	}
+	if limit > 100 {
+		limit = 100 // Maximum limit
+	}
+
+	// Get authors from repository
+	authors, total, err := uc.authorRepo.List(offset, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve authors: %w", err)
+	}
+
+	// Convert entities to DTOs
+	authorDTOs := make([]dto.AuthorDTO, len(authors))
+	for i, author := range authors {
+		authorDTOs[i] = dto.AuthorDTO{
+			AuthorID:   author.AuthorID,
+			AuthorName: author.AuthorName,
+			AuthorBio:  author.AuthorBio,
+		}
+	}
+
+	// Create response
+	response := &dto.AuthorListResponse{
+		Authors: authorDTOs,
+		Total:   total,
+		Offset:  offset,
+		Limit:   limit,
+	}
+
+	return response, nil
 }

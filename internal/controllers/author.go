@@ -8,6 +8,7 @@ import (
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/usecaseinf"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -129,5 +130,47 @@ func (ac *AuthorController) DeleteAuthor(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Author deleted successfully", nil))
+	c.Status(http.StatusNoContent)
+}
+
+func (ac *AuthorController) ListAuthors(c *gin.Context) {
+	// Parse query parameters
+	offset := 0
+	limit := 10
+
+	if offsetStr := c.Query("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err != nil {
+			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid offset parameter", "offset must be a valid integer"))
+			return
+		} else if parsed < 0 {
+			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid offset parameter", "offset must be >= 0"))
+			return
+		} else {
+			offset = parsed
+		}
+	}
+
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err != nil {
+			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid limit parameter", "limit must be a valid integer"))
+			return
+		} else if parsed <= 0 {
+			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid limit parameter", "limit must be > 0"))
+			return
+		} else if parsed > 100 {
+			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid limit parameter", "limit must be <= 100"))
+			return
+		} else {
+			limit = parsed
+		}
+	}
+
+	// Call use case
+	data, err := ac.authorUseCase.ListAuthors(offset, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to retrieve authors", err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Authors retrieved successfully", data))
 }

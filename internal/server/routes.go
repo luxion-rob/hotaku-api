@@ -24,6 +24,7 @@ func (s *Server) setupRoutes() {
 	authors := s.router.Group("/api/v1/authors")
 	{
 		// Public read access
+		authors.GET("", s.authorController.ListAuthors)
 		authors.GET("/:author_id", s.authorController.GetAuthor)
 
 		// Protected write operations
