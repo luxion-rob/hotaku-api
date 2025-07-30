@@ -16,6 +16,7 @@ func InitializeServer() *Server {
 
 	// Initialize repositories
 	userRepo := repo.NewUserRepository(config.DB)
+	authorRepo := repo.NewAuthorRepository(config.DB)
 
 	// Get JWT secret from environment
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -30,14 +31,16 @@ func InitializeServer() *Server {
 
 	// Initialize use cases
 	authUseCase := usecase.NewAuthUseCase(userRepo, tokenService)
+	authorUseCase := usecase.NewAuthorUseCase(authorRepo)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authUseCase)
+	authorController := controllers.NewAuthorController(authorUseCase)
 	healthController := controllers.NewHealthController()
 	uploadController := controllers.NewUploadController(minioService)
 
 	// Initialize and return server
-	return NewServer(authController, healthController, uploadController, tokenService)
+	return NewServer(authController, authorController, healthController, uploadController, tokenService)
 }
 
 // InitializeServerWithConfig creates and configures all dependencies with custom config
@@ -47,6 +50,7 @@ func InitializeServerWithConfig(appConfig *config.Config) *Server {
 
 	// Initialize repositories
 	userRepo := repo.NewUserRepository(config.DB)
+	authorRepo := repo.NewAuthorRepository(config.DB)
 
 	// Get JWT secret from environment
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -60,14 +64,16 @@ func InitializeServerWithConfig(appConfig *config.Config) *Server {
 
 	// Initialize use cases
 	authUseCase := usecase.NewAuthUseCase(userRepo, tokenService)
+	authorUseCase := usecase.NewAuthorUseCase(authorRepo)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authUseCase)
+	authorController := controllers.NewAuthorController(authorUseCase)
 	healthController := controllers.NewHealthController()
 	uploadController := controllers.NewUploadController(minioService)
 
 	// Initialize and return server
-	return NewServer(authController, healthController, uploadController, tokenService)
+	return NewServer(authController, authorController, healthController, uploadController, tokenService)
 }
 
 // InitializeMinioService initializes the MinIO service
