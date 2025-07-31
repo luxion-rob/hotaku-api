@@ -28,9 +28,6 @@ func ToAuthorResponse(author *entities.Author) *dto.AuthorResponse {
 	}
 
 	authorDTO := ToAuthorDTO(author)
-	if authorDTO == nil {
-		return nil
-	}
 
 	return &dto.AuthorResponse{
 		AuthorDTO:  *authorDTO,
