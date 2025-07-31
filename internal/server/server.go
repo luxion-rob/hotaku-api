@@ -13,6 +13,7 @@ import (
 type Server struct {
 	router           *gin.Engine
 	authController   *controllers.AuthController
+	authorController *controllers.AuthorController
 	healthController *controllers.HealthController
 	uploadController *controllers.UploadController
 	authMiddleware   gin.HandlerFunc
@@ -21,6 +22,7 @@ type Server struct {
 // NewServer creates a new server instance
 func NewServer(
 	authController *controllers.AuthController,
+	authorController *controllers.AuthorController,
 	healthController *controllers.HealthController,
 	uploadController *controllers.UploadController,
 	tokenService serviceinf.TokenService,
@@ -30,6 +32,7 @@ func NewServer(
 	server := &Server{
 		router:           router,
 		authController:   authController,
+		authorController: authorController,
 		healthController: healthController,
 		uploadController: uploadController,
 	}

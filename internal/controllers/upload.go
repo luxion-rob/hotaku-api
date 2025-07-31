@@ -57,11 +57,11 @@ func (c *UploadController) UploadMangaImage(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File uploaded successfully", dto.UploadResponse{
+	ctx.JSON(http.StatusOK, dto.UploadResponse{
 		URL:      fileURL,
 		Filename: file.Filename,
 		Size:     file.Size,
-	}))
+	})
 }
 
 // UploadChapterPages handles chapter pages upload
@@ -110,7 +110,7 @@ func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
 		})
 	}
 
-	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Files uploaded successfully", uploadResponses))
+	ctx.JSON(http.StatusOK, uploadResponses)
 }
 
 // DeleteFile handles file deletion
@@ -127,7 +127,7 @@ func (c *UploadController) DeleteFile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File deleted successfully", nil))
+	ctx.Status(http.StatusNoContent)
 }
 
 // GetFileInfo gets file information
@@ -152,10 +152,10 @@ func (c *UploadController) GetFileInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File info retrieved successfully", dto.FileInfoResponse{
+	ctx.JSON(http.StatusOK, dto.FileInfoResponse{
 		ObjectName: objectName,
 		Size:       size,
-	}))
+	})
 }
 
 // GetImage retrieves and serves an image file
