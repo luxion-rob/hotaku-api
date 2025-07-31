@@ -40,8 +40,8 @@ func ToAuthorResponse(author *entities.Author) *dto.AuthorResponse {
 // ToAuthorListResponse converts slice of Author entities to AuthorListResponse
 func ToAuthorListResponse(authors []entities.Author, total int64, offset, limit int) *dto.AuthorListResponse {
 	authorDTOs := make([]dto.AuthorDTO, len(authors))
-	for i, author := range authors {
-		authorDTOs[i] = *ToAuthorDTO(&author)
+	for i := range authors {
+		authorDTOs[i] = *ToAuthorDTO(&authors[i])
 	}
 
 	return &dto.AuthorListResponse{
