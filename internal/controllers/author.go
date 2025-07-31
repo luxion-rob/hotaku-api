@@ -54,7 +54,7 @@ func (ac *AuthorController) GetAuthor(c *gin.Context) {
 	}
 
 	// Call use case
-	data, err := ac.authorUseCase.GetAuthor(authorID)
+	body, err := ac.authorUseCase.GetAuthor(authorID)
 	if err != nil {
 		if errors.Is(err, apperrors.ErrAuthorNotFound) {
 			c.JSON(http.StatusNotFound, response.ErrorResponse(http.StatusNotFound, "Author not found", err.Error()))
@@ -64,7 +64,7 @@ func (ac *AuthorController) GetAuthor(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Author retrieved successfully", data))
+	c.JSON(http.StatusOK, body)
 }
 
 // UpdateAuthor handles author updates
@@ -130,11 +130,11 @@ func (ac *AuthorController) ListAuthors(c *gin.Context) {
 	}
 
 	// Call use case
-	data, err := ac.authorUseCase.ListAuthors(pagination.Offset, pagination.Limit)
+	body, err := ac.authorUseCase.ListAuthors(pagination.Offset, pagination.Limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to retrieve authors", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Authors retrieved successfully", data))
+	c.JSON(http.StatusOK, body)
 }

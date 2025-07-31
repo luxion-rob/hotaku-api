@@ -37,7 +37,7 @@ func (ac *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "User registered successfully", body))
+	c.JSON(http.StatusOK, body)
 }
 
 // Login handles user login
@@ -55,7 +55,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Login successful", body))
+	c.JSON(http.StatusOK, body)
 }
 
 // Profile retrieves user profile
@@ -75,7 +75,7 @@ func (ac *AuthController) Profile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Profile retrieved successfully", body))
+	c.JSON(http.StatusOK, body)
 }
 
 // UpdateProfile updates user profile
@@ -101,7 +101,7 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Profile updated successfully", body))
+	c.JSON(http.StatusOK, body)
 }
 
 // ChangePassword changes user password
@@ -127,5 +127,5 @@ func (ac *AuthController) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Password changed successfully", nil))
+	c.Status(http.StatusNoContent)
 }
