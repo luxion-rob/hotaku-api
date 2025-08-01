@@ -33,10 +33,10 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 	}
 
 	// Create new user entity using mapper
-	user := mapper.ToUserEntityFromRegisterRequest(req)
+	user, err := mapper.ToUserEntityFromRegisterRequest(req)
 
-	if user == nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user entity: %w", err)
 	}
 
 	// Save user to repository
