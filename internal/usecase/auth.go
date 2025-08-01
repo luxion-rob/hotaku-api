@@ -3,13 +3,11 @@ package usecase
 import (
 	"fmt"
 	"hotaku-api/internal/domain/dto"
-	"hotaku-api/internal/domain/entities"
+	"hotaku-api/internal/domain/mapper"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/repoinf"
 	"hotaku-api/internal/serviceinf"
 	"hotaku-api/internal/usecaseinf"
-
-	"github.com/google/uuid"
 )
 
 // AuthUseCaseImpl implements the authentication use cases
@@ -34,17 +32,10 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 		return nil, fmt.Errorf("user already exists")
 	}
 
-	// Create new user entity
-	user := &entities.User{
-		UserID:   uuid.New().String(),
-		RoleID:   req.RoleID, // This should be validated against existing roles
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-	}
+	// Create new user entity using mapper
+	user := mapper.ToUserEntityFromRegisterRequest(req)
 
-	// Hash password
-	if err := user.HashPassword(); err != nil {
+	if user == nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
@@ -59,20 +50,8 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	// Create response
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return &dto.AuthResponse{
-		Token: token,
-		User:  userDTO,
-	}, nil
+	// Create response using mapper
+	return mapper.ToAuthResponse(user, token), nil
 }
 
 // Login handles user login
@@ -94,20 +73,8 @@ func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, 
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	// Create response
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return &dto.AuthResponse{
-		Token: token,
-		User:  userDTO,
-	}, nil
+	// Create response using mapper
+	return mapper.ToAuthResponse(user, token), nil
 }
 
 // GetProfile retrieves user profile
@@ -117,16 +84,8 @@ func (uc *AuthUseCaseImpl) GetProfile(userID string) (*dto.UserDTO, error) {
 		return nil, fmt.Errorf("user not found")
 	}
 
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return userDTO, nil
+	// Create response using mapper
+	return mapper.ToUserDTO(user), nil
 }
 
 // UpdateProfile updates user profile
@@ -136,34 +95,24 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID string, req *request.UpdateProfi
 		return nil, fmt.Errorf("user not found")
 	}
 
-	// Update fields if provided
-	if req.Name != "" {
-		user.Name = req.Name
-	}
+	// Check if email is already taken by another user (if email is being updated)
 	if req.Email != "" {
-		// Check if email is already taken by another user
 		existingUser, err := uc.userRepo.GetByEmail(req.Email)
 		if err == nil && existingUser != nil && existingUser.UserID != userID {
 			return nil, fmt.Errorf("email already taken")
 		}
-		user.Email = req.Email
 	}
 
+	// Update user using mapper
+	updatedUser := mapper.ToUserEntityFromUpdateProfileRequest(req, user)
+
 	// Save updated user
-	if err := uc.userRepo.Update(user); err != nil {
+	if err := uc.userRepo.Update(updatedUser); err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return userDTO, nil
+	// Create response using mapper
+	return mapper.ToUserDTO(updatedUser), nil
 }
 
 // ChangePassword changes user password
