@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"fmt"
 	"hotaku-api/internal/domain/dto"
 	"hotaku-api/internal/domain/entities"
 	"hotaku-api/internal/domain/request"
@@ -35,25 +36,26 @@ func ToAuthResponse(user *entities.User, token string) *dto.AuthResponse {
 }
 
 // ToUserEntity converts RegisterRequest to User entity
-func ToUserEntityFromRegisterRequest(req *request.RegisterRequest) *entities.User {
+func ToUserEntityFromRegisterRequest(req *request.RegisterRequest) (*entities.User, error) {
 	if req == nil {
-		return nil
+		return nil, fmt.Errorf("request empty")
+	}
+
+	// Hash password
+	tempUser := entities.User{Password: req.Password}
+	if err := tempUser.HashPassword(); err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	user := entities.User{
 		UserID:   uuid.New().String(),
 		RoleID:   req.RoleID,
 		Email:    req.Email,
-		Password: req.Password, // Will be hashed later
+		Password: tempUser.Password,
 		Name:     req.Name,
 	}
 
-	// Hash password
-	if err := user.HashPassword(); err != nil {
-		return nil
-	}
-
-	return &user
+	return &user, nil
 }
 
 // ToUserEntityFromUpdateProfileRequest converts UpdateProfileRequest to User entity (for updates)
