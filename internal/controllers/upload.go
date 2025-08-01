@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"hotaku-api/internal/domain/dto"
@@ -87,17 +88,35 @@ func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
 		return
 	}
 
+	// List existing files in chapter to determine max page number
+	prefix := fmt.Sprintf("manga/%s/chapters/%s/", mangaID, chapterID)
+	existingFiles, err := c.minioService.ListFiles(prefix)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to list existing files", nil))
+		return
+	}
+
+	// Find max existing page number
+	maxPage := 0
+	_, fileName := filepath.Split(existingFiles[len(existingFiles)-1])
+	baseName := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	var pageNum int
+	if n, err := fmt.Sscanf(baseName, "page_%03d", &pageNum); err == nil && n == 1 && pageNum > maxPage {
+		maxPage = pageNum
+	}
+
 	var uploadResponses []dto.UploadResponse
 
-	// Upload each file
+	// Upload each new file, continuing the page numbering
 	for i, file := range files {
+		pageNumber := maxPage + i + 1
+
 		if err := c.validateImageFile(file); err != nil {
 			ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error(), nil))
 			return
 		}
 
-		// Upload to MinIO
-		fileURL, err := c.minioService.UploadChapterPage(file, mangaID, chapterID, i+1)
+		fileURL, err := c.minioService.UploadChapterPage(file, mangaID, chapterID, pageNumber)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to upload file "+file.Filename, nil))
 			return
@@ -111,6 +130,58 @@ func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Files uploaded successfully", uploadResponses))
+}
+
+// ReplacePage handles replace specific page
+func (c *UploadController) ReplacePage(ctx *gin.Context) {
+	mangaID := ctx.Param("manga_id")
+	chapterID := ctx.Param("chapter_id")
+
+	if mangaID == "" || chapterID == "" {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Manga ID and Chapter ID are required", nil))
+		return
+	}
+
+	page, err := strconv.Atoi(ctx.Param("page"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Page must be integer", nil))
+		return
+	}
+
+	if page <= 0 {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Page must be a positive integer", nil))
+		return
+	}
+
+	if page > 999 {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Page number exceeds maximum allowed value", nil))
+		return
+	}
+
+	// Get the uploaded file
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "No image file found in the request. Key 'image' required.", nil))
+		return
+	}
+
+	if err := c.validateImageFile(file); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, err.Error(), nil))
+		return
+	}
+
+	// Upload to MinIO
+	fileURL, err := c.minioService.UploadChapterPage(file, mangaID, chapterID, page)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to upload file", nil))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File uploaded successfully", dto.UploadResponse{
+		URL:      fileURL,
+		Filename: file.Filename,
+		Size:     file.Size,
+	}))
 }
 
 // DeleteFile handles file deletion
