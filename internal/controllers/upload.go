@@ -136,14 +136,13 @@ func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
 func (c *UploadController) ReplacePage(ctx *gin.Context) {
 	mangaID := ctx.Param("manga_id")
 	chapterID := ctx.Param("chapter_id")
-	pageString := ctx.Param("page")
 
 	if mangaID == "" || chapterID == "" {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Manga ID and Chapter ID are required", nil))
 		return
 	}
 
-	page, err := strconv.Atoi(pageString)
+	page, err := strconv.Atoi(ctx.Param("page"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Page must be integer", nil))
 		return
