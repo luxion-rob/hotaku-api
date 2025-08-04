@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"hotaku-api/internal/domain/dto"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -41,4 +42,20 @@ func (u *User) CheckPassword(password string) bool {
 // IsDeleted checks if the user is soft deleted
 func (u *User) IsDeleted() bool {
 	return u.DeletedFlag
+}
+
+func (u *User) ToDTO() *dto.UserDTO {
+	return &dto.UserDTO{
+		UserID: u.UserID,
+		RoleID: u.RoleID,
+		Name:   u.Name,
+		Email:  u.Email,
+	}
+}
+
+func (u *User) ToAuthResponse(token string) *dto.AuthResponse {
+	return &dto.AuthResponse{
+		Token: token,
+		User:  u.ToDTO(),
+	}
 }

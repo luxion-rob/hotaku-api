@@ -3,7 +3,6 @@ package usecase
 import (
 	"fmt"
 	"hotaku-api/internal/domain/dto"
-	"hotaku-api/internal/domain/mapper"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/repoinf"
 	"hotaku-api/internal/serviceinf"
@@ -33,7 +32,7 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 	}
 
 	// Create new user entity using mapper
-	user, err := mapper.ToUserEntityFromRegisterRequest(req)
+	user, err := req.ToUserEntity()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user entity: %w", err)
@@ -51,7 +50,7 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 	}
 
 	// Create response using mapper
-	return mapper.ToAuthResponse(user, token), nil
+	return user.ToAuthResponse(token), nil
 }
 
 // Login handles user login
@@ -74,7 +73,7 @@ func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, 
 	}
 
 	// Create response using mapper
-	return mapper.ToAuthResponse(user, token), nil
+	return user.ToAuthResponse(token), nil
 }
 
 // GetProfile retrieves user profile
@@ -85,7 +84,7 @@ func (uc *AuthUseCaseImpl) GetProfile(userID string) (*dto.UserDTO, error) {
 	}
 
 	// Create response using mapper
-	return mapper.ToUserDTO(user), nil
+	return user.ToDTO(), nil
 }
 
 // UpdateProfile updates user profile
@@ -104,7 +103,7 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID string, req *request.UpdateProfi
 	}
 
 	// Update user using mapper
-	updatedUser := mapper.ToUserEntityFromUpdateProfileRequest(req, user)
+	updatedUser := req.ToUserEntity(user)
 
 	// Save updated user
 	if err := uc.userRepo.Update(updatedUser); err != nil {
@@ -112,7 +111,7 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID string, req *request.UpdateProfi
 	}
 
 	// Create response using mapper
-	return mapper.ToUserDTO(updatedUser), nil
+	return updatedUser.ToDTO(), nil
 }
 
 // ChangePassword changes user password
