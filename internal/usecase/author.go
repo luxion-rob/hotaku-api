@@ -24,11 +24,6 @@ func NewAuthorUseCase(authorRepo repoinf.AuthorRepository) usecaseinf.AuthorUseC
 
 // CreateAuthor handles author creation
 func (uc *AuthorUseCaseImpl) CreateAuthor(req *request.CreateAuthorRequest) (*dto.AuthorResponse, error) {
-	// Validate request
-	if req.AuthorName == "" {
-		return nil, fmt.Errorf("author name is required")
-	}
-
 	// Enforce maximum length for optional bio
 	if req.AuthorBio != nil && len(*req.AuthorBio) > 1000 {
 		return nil, fmt.Errorf("author bio must not exceed 1000 characters")
