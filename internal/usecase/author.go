@@ -3,7 +3,7 @@ package usecase
 import (
 	"fmt"
 	"hotaku-api/internal/domain/dto"
-	"hotaku-api/internal/domain/mapper"
+	"hotaku-api/internal/domain/entities"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/repoinf"
 	"hotaku-api/internal/usecaseinf"
@@ -35,14 +35,14 @@ func (uc *AuthorUseCaseImpl) CreateAuthor(req *request.CreateAuthorRequest) (*dt
 	}
 
 	// Create author entity using mapper
-	author := mapper.ToAuthorEntityFromCreateRequest(req)
+	author := req.ToAuthorEntity()
 
 	// Save to repository
 	if err := uc.authorRepo.Create(author); err != nil {
 		return nil, fmt.Errorf("failed to create author: %w", err)
 	}
 
-	return mapper.ToAuthorResponse(author), nil
+	return author.ToAuthorResponse(), nil
 }
 
 // GetAuthor retrieves an author by ID
@@ -58,7 +58,7 @@ func (uc *AuthorUseCaseImpl) GetAuthor(authorID string) (*dto.AuthorDTO, error) 
 		return nil, fmt.Errorf("error: %w", err)
 	}
 
-	return mapper.ToAuthorDTO(author), nil
+	return author.ToDTO(), nil
 }
 
 // UpdateAuthor handles author updates
@@ -75,14 +75,14 @@ func (uc *AuthorUseCaseImpl) UpdateAuthor(req *request.UpdateAuthorRequest, auth
 	}
 
 	// Update author using mapper
-	updatedAuthor := mapper.ToAuthorEntityFromUpdateRequest(req, author)
+	updatedAuthor := req.ToAuthorEntityFromUpdateRequest(author)
 
 	// Save updates to repository
 	if err := uc.authorRepo.Update(updatedAuthor); err != nil {
 		return nil, fmt.Errorf("failed to update author: %w", err)
 	}
 
-	return mapper.ToAuthorResponse(updatedAuthor), nil
+	return updatedAuthor.ToAuthorResponse(), nil
 }
 
 // DeleteAuthor handles author deletion
@@ -102,11 +102,12 @@ func (uc *AuthorUseCaseImpl) DeleteAuthor(authorID string) error {
 
 // ListAuthors retrieves a paginated list of all authors
 func (uc *AuthorUseCaseImpl) ListAuthors(offset, limit int) (*dto.AuthorListResponse, error) {
+	var authors entities.AuthorList
 	// Get authors from repository
 	authors, total, err := uc.authorRepo.List(offset, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve authors: %w", err)
 	}
 
-	return mapper.ToAuthorListResponse(authors, total, offset, limit), nil
+	return authors.ToAuthorListResponse(total, offset, limit), nil
 }

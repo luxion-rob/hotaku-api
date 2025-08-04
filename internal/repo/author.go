@@ -71,8 +71,8 @@ func (r *AuthorRepositoryImpl) Delete(id string) error {
 }
 
 // List retrieves a paginated list of all authors
-func (r *AuthorRepositoryImpl) List(offset, limit int) ([]entities.Author, int64, error) {
-	var authors []entities.Author
+func (r *AuthorRepositoryImpl) List(offset, limit int) (entities.AuthorList, int64, error) {
+	var authors entities.AuthorList
 	var total int64
 
 	// Get total count

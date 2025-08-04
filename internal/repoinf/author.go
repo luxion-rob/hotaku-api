@@ -7,5 +7,5 @@ type AuthorRepository interface {
 	GetByID(id string) (*entities.Author, error)
 	Update(author *entities.Author) error
 	Delete(id string) error
-	List(offset, limit int) ([]entities.Author, int64, error)
+	List(offset, limit int) (entities.AuthorList, int64, error)
 }
