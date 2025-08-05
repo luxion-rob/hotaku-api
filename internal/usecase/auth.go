@@ -3,6 +3,7 @@ package usecase
 import (
 	"fmt"
 	"hotaku-api/internal/domain/dto"
+	"hotaku-api/internal/domain/mapper"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/repoinf"
 	"hotaku-api/internal/serviceinf"
@@ -24,19 +25,14 @@ func NewAuthUseCase(userRepo repoinf.UserRepository, tokenService serviceinf.Tok
 }
 
 // Register handles user registration
-func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResponse, error) {
+func (uc *AuthUseCaseImpl) Register(authDTO *dto.AuthDTO) (*dto.AuthResponse, error) {
 	// Check if user already exists
-	existingUser, err := uc.userRepo.GetByEmail(req.Email)
+	existingUser, err := uc.userRepo.GetByEmail(authDTO.Email)
 	if err == nil && existingUser != nil {
 		return nil, fmt.Errorf("user already exists")
 	}
 
-	// Create new user entity using mapper
-	user, err := req.ToUserEntity()
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create user entity: %w", err)
-	}
+	user := mapper.FromAuthDTOToUserEntity(authDTO)
 
 	// Save user to repository
 	if err := uc.userRepo.Create(user); err != nil {
@@ -49,20 +45,19 @@ func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResp
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	// Create response using mapper
-	return user.ToAuthResponse(token), nil
+	return mapper.FromUserEntityToAuthResponse(user, token), nil
 }
 
 // Login handles user login
-func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, error) {
+func (uc *AuthUseCaseImpl) Login(loginDTO *dto.LoginDTO) (*dto.AuthResponse, error) {
 	// Get user by email
-	user, err := uc.userRepo.GetByEmail(req.Email)
+	user, err := uc.userRepo.GetByEmail(loginDTO.Email)
 	if err != nil {
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
 	// Check password
-	if !user.CheckPassword(req.Password) {
+	if !user.CheckPassword(loginDTO.Password) {
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
@@ -73,7 +68,7 @@ func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, 
 	}
 
 	// Create response using mapper
-	return user.ToAuthResponse(token), nil
+	return mapper.FromUserEntityToAuthResponse(user, token), nil
 }
 
 // GetProfile retrieves user profile
@@ -84,7 +79,7 @@ func (uc *AuthUseCaseImpl) GetProfile(userID string) (*dto.UserDTO, error) {
 	}
 
 	// Create response using mapper
-	return user.ToDTO(), nil
+	return mapper.FromUserEntityToUserDTO(user), nil
 }
 
 // UpdateProfile updates user profile
@@ -103,7 +98,7 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID string, req *request.UpdateProfi
 	}
 
 	// Update user using mapper
-	updatedUser := req.ToUserEntity(user)
+	updatedUser := mapper.FromUpdateProfileRequestToUserEntity(req, user)
 
 	// Save updated user
 	if err := uc.userRepo.Update(updatedUser); err != nil {
@@ -111,7 +106,7 @@ func (uc *AuthUseCaseImpl) UpdateProfile(userID string, req *request.UpdateProfi
 	}
 
 	// Create response using mapper
-	return updatedUser.ToDTO(), nil
+	return mapper.FromUserEntityToUserDTO(updatedUser), nil
 }
 
 // ChangePassword changes user password

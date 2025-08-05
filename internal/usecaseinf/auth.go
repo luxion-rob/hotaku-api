@@ -8,9 +8,9 @@ import (
 // AuthUseCase defines the interface for authentication use cases
 type AuthUseCase interface {
 	// Register creates a new user account and returns authentication response
-	Register(req *request.RegisterRequest) (*dto.AuthResponse, error)
+	Register(authDTO *dto.AuthDTO) (*dto.AuthResponse, error)
 	// Login authenticates a user and returns authentication response with token
-	Login(req *request.LoginRequest) (*dto.AuthResponse, error)
+	Login(loginDTO *dto.LoginDTO) (*dto.AuthResponse, error)
 	// GetProfile retrieves user profile information by user ID
 	GetProfile(userID string) (*dto.UserDTO, error)
 	// UpdateProfile updates user profile information

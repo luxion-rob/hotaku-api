@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"hotaku-api/internal/domain/mapper"
 	"hotaku-api/internal/domain/request"
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/usecaseinf"
@@ -31,8 +32,15 @@ func (ac *AuthController) Register(c *gin.Context) {
 		return
 	}
 
+	authDTO, err := mapper.FromRegisterRequestToAuthDTO(&req)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Registration failed", err.Error()))
+		return
+	}
+
 	// Call use case
-	body, err := ac.authUseCase.Register(&req)
+	body, err := ac.authUseCase.Register(authDTO)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Registration failed", err.Error()))
 		return
@@ -49,8 +57,10 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	loginDTO := mapper.FromLoginRequestToLoginDTO(&req)
+
 	// Call use case
-	body, err := ac.authUseCase.Login(&req)
+	body, err := ac.authUseCase.Login(loginDTO)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Login failed", err.Error()))
 		return
