@@ -91,6 +91,10 @@ func FromUpdateProfileRequestToUserEntity(req *request.UpdateProfileRequest, exi
 }
 
 func FromLoginRequestToLoginDTO(req *request.LoginRequest) *dto.LoginDTO {
+	if req == nil {
+		return nil
+	}
+
 	return &dto.LoginDTO{
 		Email:    req.Email,
 		Password: req.Password,
