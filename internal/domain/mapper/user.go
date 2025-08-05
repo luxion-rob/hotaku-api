@@ -6,6 +6,10 @@ import (
 )
 
 func FromUserDTOToAuthResponse(userDTO *dto.UserDTO, token string) *dto.AuthResponse {
+	if userDTO == nil {
+		return nil
+	}
+
 	return &dto.AuthResponse{
 		Token: token,
 		User:  userDTO,
@@ -13,6 +17,10 @@ func FromUserDTOToAuthResponse(userDTO *dto.UserDTO, token string) *dto.AuthResp
 }
 
 func FromUserEntityToAuthResponse(user *entities.User, token string) *dto.AuthResponse {
+	if user == nil {
+		return nil
+	}
+
 	return &dto.AuthResponse{
 		Token: token,
 		User:  FromUserEntityToUserDTO(user),
@@ -20,6 +28,10 @@ func FromUserEntityToAuthResponse(user *entities.User, token string) *dto.AuthRe
 }
 
 func FromUserEntityToUserDTO(user *entities.User) *dto.UserDTO {
+	if user == nil {
+		return nil
+	}
+
 	return &dto.UserDTO{
 		UserID:    user.UserID,
 		RoleID:    user.RoleID,
