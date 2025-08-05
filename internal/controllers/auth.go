@@ -57,6 +57,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	// Login mapping is simple field copy and doesn't require error handling
 	loginDTO := mapper.FromLoginRequestToLoginDTO(&req)
 
 	// Call use case

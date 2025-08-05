@@ -10,6 +10,11 @@ import (
 )
 
 func FromAuthDTOToUserEntity(authDTO *dto.AuthDTO) *entities.User {
+	if authDTO == nil {
+		return nil
+	}
+
+	// Password in AuthDTO should already be hashed
 	return &entities.User{
 		UserID:   uuid.NewString(),
 		RoleID:   authDTO.RoleID,
@@ -20,6 +25,10 @@ func FromAuthDTOToUserEntity(authDTO *dto.AuthDTO) *entities.User {
 }
 
 func FromAuthDTOToUserDTO(authDTO *dto.AuthDTO) *dto.UserDTO {
+	if authDTO == nil {
+		return nil
+	}
+
 	return &dto.UserDTO{
 		UserID: authDTO.UserID,
 		RoleID: authDTO.RoleID,
@@ -29,6 +38,10 @@ func FromAuthDTOToUserDTO(authDTO *dto.AuthDTO) *dto.UserDTO {
 }
 
 func FromAuthDTOToAuthResponse(authDTO *dto.AuthDTO, token string) *dto.AuthResponse {
+	if authDTO == nil {
+		return nil
+	}
+
 	return &dto.AuthResponse{
 		Token: token,
 		User:  FromAuthDTOToUserDTO(authDTO),
