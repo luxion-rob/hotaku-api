@@ -24,11 +24,6 @@ func NewAuthorUseCase(authorRepo repoinf.AuthorRepository) usecaseinf.AuthorUseC
 
 // CreateAuthor handles author creation
 func (uc *AuthorUseCaseImpl) CreateAuthor(authorDTO *dto.AuthorDTO) (*dto.AuthorDTO, error) {
-	// Enforce maximum length for optional bio
-	if authorDTO.AuthorBio != nil && len(*authorDTO.AuthorBio) > 1000 {
-		return nil, fmt.Errorf("author bio must not exceed 1000 characters")
-	}
-
 	// Map to Author entity
 	author := mapper.FromAuthorDTOToAuthorEntity(authorDTO)
 
