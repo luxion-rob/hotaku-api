@@ -4,18 +4,23 @@ import (
 	"time"
 )
 
-// AuthResponse represents authentication response
-type AuthResponse struct {
-	Token string   `json:"token,omitempty"`
-	User  *UserDTO `json:"user,omitempty"`
-}
-
-// UserDTO represents user data in responses
-type UserDTO struct {
+type AuthDTO struct {
 	UserID    string    `json:"user_id"`
 	RoleID    string    `json:"role_id"`
 	Name      string    `json:"name"`
 	Email     string    `json:"email"`
+	Password  string    `json:"password"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type LoginDTO struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type ChangePasswordDTO struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+	ConfirmPassword string `json:"confirm_password"`
 }

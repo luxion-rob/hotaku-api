@@ -3,13 +3,10 @@ package usecase
 import (
 	"fmt"
 	"hotaku-api/internal/domain/dto"
-	"hotaku-api/internal/domain/entities"
-	"hotaku-api/internal/domain/request"
+	"hotaku-api/internal/domain/mapper"
 	"hotaku-api/internal/repoinf"
 	"hotaku-api/internal/serviceinf"
 	"hotaku-api/internal/usecaseinf"
-
-	"github.com/google/uuid"
 )
 
 // AuthUseCaseImpl implements the authentication use cases
@@ -27,87 +24,50 @@ func NewAuthUseCase(userRepo repoinf.UserRepository, tokenService serviceinf.Tok
 }
 
 // Register handles user registration
-func (uc *AuthUseCaseImpl) Register(req *request.RegisterRequest) (*dto.AuthResponse, error) {
+func (uc *AuthUseCaseImpl) Register(authDTO *dto.AuthDTO) (*dto.UserDTO, *string, error) {
 	// Check if user already exists
-	existingUser, err := uc.userRepo.GetByEmail(req.Email)
+	existingUser, err := uc.userRepo.GetByEmail(authDTO.Email)
 	if err == nil && existingUser != nil {
-		return nil, fmt.Errorf("user already exists")
+		return nil, nil, fmt.Errorf("user already exists")
 	}
 
-	// Create new user entity
-	user := &entities.User{
-		UserID:   uuid.New().String(),
-		RoleID:   req.RoleID, // This should be validated against existing roles
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-	}
-
-	// Hash password
-	if err := user.HashPassword(); err != nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
-	}
+	user := mapper.FromAuthDTOToUserEntity(authDTO)
 
 	// Save user to repository
 	if err := uc.userRepo.Create(user); err != nil {
-		return nil, fmt.Errorf("failed to create user: %w", err)
+		return nil, nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
 	// Generate token
 	token, err := uc.tokenService.GenerateToken(user.UserID, user.Email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate token: %w", err)
+		return nil, nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	// Create response
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return &dto.AuthResponse{
-		Token: token,
-		User:  userDTO,
-	}, nil
+	return mapper.FromUserEntityToUserDTO(user), &token, nil
 }
 
 // Login handles user login
-func (uc *AuthUseCaseImpl) Login(req *request.LoginRequest) (*dto.AuthResponse, error) {
+func (uc *AuthUseCaseImpl) Login(loginDTO *dto.LoginDTO) (*dto.UserDTO, *string, error) {
 	// Get user by email
-	user, err := uc.userRepo.GetByEmail(req.Email)
+	user, err := uc.userRepo.GetByEmail(loginDTO.Email)
 	if err != nil {
-		return nil, fmt.Errorf("invalid credentials")
+		return nil, nil, fmt.Errorf("invalid credentials")
 	}
 
 	// Check password
-	if !user.CheckPassword(req.Password) {
-		return nil, fmt.Errorf("invalid credentials")
+	if !user.CheckPassword(loginDTO.Password) {
+		return nil, nil, fmt.Errorf("invalid credentials")
 	}
 
 	// Generate token
 	token, err := uc.tokenService.GenerateToken(user.UserID, user.Email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate token: %w", err)
+		return nil, nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	// Create response
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return &dto.AuthResponse{
-		Token: token,
-		User:  userDTO,
-	}, nil
+	// Create response using mapper
+	return mapper.FromUserEntityToUserDTO(user), &token, nil
 }
 
 // GetProfile retrieves user profile
@@ -117,69 +77,60 @@ func (uc *AuthUseCaseImpl) GetProfile(userID string) (*dto.UserDTO, error) {
 		return nil, fmt.Errorf("user not found")
 	}
 
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return userDTO, nil
+	// Create response using mapper
+	return mapper.FromUserEntityToUserDTO(user), nil
 }
 
 // UpdateProfile updates user profile
-func (uc *AuthUseCaseImpl) UpdateProfile(userID string, req *request.UpdateProfileRequest) (*dto.UserDTO, error) {
-	user, err := uc.userRepo.GetByID(userID)
+func (uc *AuthUseCaseImpl) UpdateProfile(updateUserDTO *dto.UserDTO, userID string) (*dto.UserDTO, error) {
+	existingUser, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
 
-	// Update fields if provided
-	if req.Name != "" {
-		user.Name = req.Name
-	}
-	if req.Email != "" {
-		// Check if email is already taken by another user
-		existingUser, err := uc.userRepo.GetByEmail(req.Email)
-		if err == nil && existingUser != nil && existingUser.UserID != userID {
+	// Check if email is already taken by another user (if email is being updated)
+	if updateUserDTO.Email != "" {
+		existingEmailUser, err := uc.userRepo.GetByEmail(updateUserDTO.Email)
+		if err == nil && existingEmailUser != nil && existingEmailUser.UserID != userID {
 			return nil, fmt.Errorf("email already taken")
 		}
-		user.Email = req.Email
+	}
+
+	// Create a copy of the existing user
+	updatedUser := *existingUser
+
+	// Update only the fields that are provided in the request
+	if updateUserDTO.Name != "" {
+		updatedUser.Name = updateUserDTO.Name
+	}
+
+	if updateUserDTO.Email != "" {
+		updatedUser.Email = updateUserDTO.Email
 	}
 
 	// Save updated user
-	if err := uc.userRepo.Update(user); err != nil {
+	if err := uc.userRepo.Update(&updatedUser); err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	userDTO := &dto.UserDTO{
-		UserID:    user.UserID,
-		RoleID:    user.RoleID,
-		Name:      user.Name,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
-
-	return userDTO, nil
+	// Create response using mapper
+	return mapper.FromUserEntityToUserDTO(&updatedUser), nil
 }
 
 // ChangePassword changes user password
-func (uc *AuthUseCaseImpl) ChangePassword(userID string, req *request.ChangePasswordRequest) error {
+func (uc *AuthUseCaseImpl) ChangePassword(changePasswordDTO *dto.ChangePasswordDTO, userID string) error {
 	user, err := uc.userRepo.GetByID(userID)
 	if err != nil {
 		return fmt.Errorf("user not found")
 	}
 
 	// Verify current password
-	if !user.CheckPassword(req.CurrentPassword) {
+	if !user.CheckPassword(changePasswordDTO.CurrentPassword) {
 		return fmt.Errorf("current password is incorrect")
 	}
 
 	// Update password
-	user.Password = req.NewPassword
+	user.Password = changePasswordDTO.NewPassword
 	if err := user.HashPassword(); err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
