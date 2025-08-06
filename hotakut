@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+INFRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/infra" && pwd)"
+PROJECT_ROOT="$(cd "$INFRA_DIR/.." && pwd)"
+error_handler() {
+  exit 1
+}
+
+trap error_handler ERR
+# Ensure secrets exist
+ensure_secrets() {
+  if [[ ! -f "$INFRA_DIR/secrets/db_password.txt" || ! -f "$INFRA_DIR/secrets/jwt_secret.txt" ]]; then
+    echo "❌ Error: Secret files not found. Run './dev.sh generate-secrets' first"
+    exit 1
+  else
+    echo "✅ Secret files found and ready"
+  fi
+}
+# Ensure migrate script is executable
+ensure_migrate_script() {
+  chmod +x "$INFRA_DIR/scripts/migrate.sh"
+}
+# Commands
+help() {
+  echo -e "🚀 Hotaku API - Development Commands"
+  echo -e "====================================="
+  echo ""
+  echo -e "  dockerUp            🐳 Start development containers"
+  echo -e "  dockerDown          🐳 Stop all containers"
+  echo -e "  prodUp              🐳 Start production containers (requires secrets)"
+  echo -e "  generateSecrets     🔐 Generate secure secrets for production"
+  echo -e "  migrateUp           🗄️  Run database migrations"
+  echo -e "  migrateDown         🗄️  Rollback to specific version (set \$version)"
+  echo -e "  migrateStatus       🗄️  Show migration status"
+  echo -e "  migrateRefresh      🗄️  Refresh migrations (rollback all + rerun)"
+  echo -e "  migrateForce        🗄️  Force migration version (set \$version)"
+  echo -e "  clean               🧹 Clean up containers, volumes, and cache"
+  echo -e "  devSetup            🛠️  Start dev containers and run migrations"
+  echo -e "  setupEnv            🔧 Copy environment files to required locations"
+  echo -e "  help                📘 Show this help message"
+  echo ""
+  echo -e "💡 Quick Start:"
+  echo -e "  ./hotakut setupEnv"
+  echo -e "  ./hotakut devSetup"
+}
+dockerUp() {
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.yml" up -d
+}
+
+prodUp() {
+  ensure_secrets
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.prod.yml" up -d
+}
+
+dockerDown() {
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.yml" down
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.prod.yml" down
+}
+
+generateSecrets() {
+  echo "Start generate..."
+  mkdir -p "$INFRA_DIR/secrets"
+  openssl rand -base64 32 > "$INFRA_DIR/secrets/db_password.txt"
+  openssl rand -base64 64 > "$INFRA_DIR/secrets/jwt_secret.txt"
+  echo "Done"
+}
+
+migrateUp() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" up
+}
+
+migrateDown() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" down "$VERSION"
+}
+
+migrateStatus() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" status
+}
+
+migrateRefresh() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" refresh
+}
+
+migrateForce() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" force "$VERSION"
+}
+
+clean() {
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.yml" down -v
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.prod.yml" down -v
+  docker system prune -f
+}
+
+devSetup() {
+  dockerUp
+  migrateUp
+}
+
+setupEnv() {
+  bash "$INFRA_DIR/scripts/setup-env.sh"
+}
+
+
+
+
+# Main dispatcher
+raw_cmd="${1:-help}"
+shift || true
+
+# Call function if defined
+if declare -f "$raw_cmd" > /dev/null; then
+  "$raw_cmd" "$@"
+else
+  echo "❌ Unknown command: $raw_cmd"
+  echo "Use './dev help' to see available commands"
+  exit 1
+fi
+
