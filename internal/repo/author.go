@@ -78,14 +78,22 @@ func (r *AuthorRepositoryImpl) List(offset, limit int) ([]entities.Author, int64
 	var authors []entities.Author
 	var total int64
 
-	// Get total count of authors in the database
-	if err := r.db.Model(&entities.Author{}).Count(&total).Error; err != nil {
-		return nil, 0, fmt.Errorf("failed to count authors: %w", err)
-	}
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// Get total count of authors in the database
+		if err := tx.Model(&entities.Author{}).Count(&total).Error; err != nil {
+			return fmt.Errorf("failed to count authors: %w", err)
+		}
 
-	// Get paginated results ordered by author name
-	if err := r.db.Model(&entities.Author{}).Order("author_name").Offset(offset).Limit(limit).Find(&authors).Error; err != nil {
-		return nil, 0, fmt.Errorf("failed to retrieve authors list: %w", err)
+		// Get paginated results ordered by author name
+		if err := tx.Model(&entities.Author{}).Order("author_name").Offset(offset).Limit(limit).Find(&authors).Error; err != nil {
+			return fmt.Errorf("failed to retrieve authors list: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return authors, total, nil

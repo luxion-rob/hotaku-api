@@ -75,6 +75,14 @@ func (ac *AuthorController) GetAuthor(c *gin.Context) {
 
 // UpdateAuthor handles author updates
 func (ac *AuthorController) UpdateAuthor(c *gin.Context) {
+	authorID := c.Param("author_id")
+
+	// Validate UUID format
+	if err := validation.ValidateUUID(authorID, "author ID"); err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid author ID", err.Error()))
+		return
+	}
+
 	// request from client must have authorID
 	var req request.UpdateAuthorRequest
 
@@ -87,7 +95,7 @@ func (ac *AuthorController) UpdateAuthor(c *gin.Context) {
 	authorUpdate := mapper.FromUpdateAuthorRequestToAuthorDTO(&req)
 
 	// Call use case
-	_, err := ac.authorUseCase.UpdateAuthor(authorUpdate)
+	_, err := ac.authorUseCase.UpdateAuthor(authorUpdate, authorID)
 	if err != nil {
 		if errors.Is(err, apperrors.ErrAuthorNotFound) {
 			c.JSON(http.StatusNotFound, response.ErrorResponse(http.StatusNotFound, "Author not found", err.Error()))

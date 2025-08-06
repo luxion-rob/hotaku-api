@@ -20,7 +20,7 @@ type AuthorUseCase interface {
 	// UpdateAuthor handles author updates with business logic validation
 	// Validates existence, applies partial updates, and enforces business rules
 	// Returns updated author DTO or error if validation/operation fails
-	UpdateAuthor(authorDTO *dto.AuthorDTO) (*dto.AuthorDTO, error)
+	UpdateAuthor(authorDTO *dto.AuthorDTO, authorID string) (*dto.AuthorDTO, error)
 
 	// DeleteAuthor handles author deletion with business logic validation
 	// Validates UUID format and ensures author exists before deletion

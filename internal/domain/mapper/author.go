@@ -34,7 +34,6 @@ func FromUpdateAuthorRequestToAuthorDTO(req *request.UpdateAuthorRequest) *dto.A
 	}
 
 	updatedAuthor := &dto.AuthorDTO{
-		AuthorID:   req.AuthorID,
 		AuthorName: req.AuthorName,
 		AuthorBio:  req.AuthorBio,
 	}

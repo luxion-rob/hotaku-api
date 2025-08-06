@@ -15,6 +15,19 @@ const (
 	DefaultLimit  = 10
 )
 
+func ValidatePaginationParams(offset, limit, maxLimit int) error {
+	if offset < 0 {
+		return fmt.Errorf("offset must be >= 0")
+	}
+	if limit <= 0 {
+		return fmt.Errorf("limit must be > 0")
+	}
+	if limit > maxLimit {
+		return fmt.Errorf("limit must be <= %d", maxLimit)
+	}
+	return nil
+}
+
 func ParsePagination(c *gin.Context, maxLimit int) (*request.Pagination, bool) {
 	offset := DefaultOffset
 	limit := DefaultLimit
@@ -23,10 +36,6 @@ func ParsePagination(c *gin.Context, maxLimit int) (*request.Pagination, bool) {
 		parsed, err := strconv.Atoi(offsetStr)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid offset parameter", "offset must be a valid integer"))
-			return nil, false
-		}
-		if parsed < 0 {
-			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid offset parameter", "offset must be >= 0"))
 			return nil, false
 		}
 		offset = parsed
@@ -38,15 +47,12 @@ func ParsePagination(c *gin.Context, maxLimit int) (*request.Pagination, bool) {
 			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid limit parameter", "limit must be a valid integer"))
 			return nil, false
 		}
-		if parsed <= 0 {
-			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid limit parameter", "limit must be > 0"))
-			return nil, false
-		}
-		if parsed > maxLimit {
-			c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid limit parameter", fmt.Sprintf("limit must be <= %d", maxLimit)))
-			return nil, false
-		}
 		limit = parsed
+	}
+
+	if err := ValidatePaginationParams(offset, limit, maxLimit); err != nil {
+		c.JSON(http.StatusBadRequest, response.ErrorResponse(http.StatusBadRequest, "Invalid pagination parameter", err.Error()))
+		return nil, false
 	}
 
 	return &request.Pagination{Offset: offset, Limit: limit}, true

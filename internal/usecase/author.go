@@ -37,7 +37,8 @@ func (uc *AuthorUseCaseImpl) CreateAuthor(authorDTO *dto.AuthorDTO) (*dto.Author
 		return nil, fmt.Errorf("failed to create author: %w", err)
 	}
 
-	return authorDTO, nil
+	// Map the created entity back to DTO to include auto-generated fields
+	return mapper.FromAuthorEntityToAuthorDTO(author), nil
 }
 
 // GetAuthor retrieves an author by ID
@@ -57,9 +58,9 @@ func (uc *AuthorUseCaseImpl) GetAuthor(authorID string) (*dto.AuthorDTO, error) 
 }
 
 // UpdateAuthor handles author updates
-func (uc *AuthorUseCaseImpl) UpdateAuthor(updateAuthorDTO *dto.AuthorDTO) (*dto.AuthorDTO, error) {
+func (uc *AuthorUseCaseImpl) UpdateAuthor(updateAuthorDTO *dto.AuthorDTO, authorID string) (*dto.AuthorDTO, error) {
 	// Get existing author to ensure it exists and for partial update logic
-	author, err := uc.authorRepo.GetByID(updateAuthorDTO.AuthorID)
+	author, err := uc.authorRepo.GetByID(authorID)
 	if err != nil {
 		return nil, fmt.Errorf("error: %w", err)
 	}

@@ -8,7 +8,6 @@ type CreateAuthorRequest struct {
 
 // UpdateAuthorRequest represents the request structure for updating an existing author
 type UpdateAuthorRequest struct {
-	AuthorID   string  `json:"author_id" binding:"required,uuid"`
 	AuthorName string  `json:"author_name" binding:"min=1,max=50"`
 	AuthorBio  *string `json:"author_bio,omitempty"`
 }
