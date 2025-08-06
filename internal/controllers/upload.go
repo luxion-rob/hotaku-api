@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"hotaku-api/internal/domain/dto"
 	"hotaku-api/internal/domain/response"
 	"hotaku-api/internal/service"
 
@@ -29,6 +28,54 @@ func NewUploadController(minioService *service.MinIOService) *UploadController {
 	return &UploadController{
 		minioService: minioService,
 	}
+}
+
+// isValidImageFile checks if the file is a valid image
+func isValidImageFile(filename string) bool {
+	validExtensions := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".gif":  true,
+		".webp": true,
+	}
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	return validExtensions[ext]
+}
+
+// getImageContentType determines the MIME type based on file extension
+func getImageContentType(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
+	case ".svg":
+		return "image/svg+xml"
+	case ".bmp":
+		return "image/bmp"
+	case ".ico":
+		return "image/x-icon"
+	default:
+		return "application/octet-stream"
+	}
+}
+
+func (c *UploadController) validateImageFile(file *multipart.FileHeader) error {
+	if !isValidImageFile(file.Filename) {
+		return fmt.Errorf("invalid file type. Only image files (jpg, jpeg, png, gif, webp) are allowed")
+	}
+
+	if file.Size > MaxFileSize {
+		return fmt.Errorf("file size %d exceeds maximum allowed size %d", file.Size, MaxFileSize)
+	}
+	return nil
 }
 
 // UploadMangaImage handles manga image upload
@@ -58,7 +105,7 @@ func (c *UploadController) UploadMangaImage(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dto.UploadResponse{
+	ctx.JSON(http.StatusOK, response.UploadResponse{
 		URL:      fileURL,
 		Filename: file.Filename,
 		Size:     file.Size,
@@ -105,7 +152,7 @@ func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
 		maxPage = pageNum
 	}
 
-	var uploadResponses []dto.UploadResponse
+	var uploadResponses []response.UploadResponse
 
 	// Upload each new file, continuing the page numbering
 	for i, file := range files {
@@ -122,7 +169,7 @@ func (c *UploadController) UploadChapterPages(ctx *gin.Context) {
 			return
 		}
 
-		uploadResponses = append(uploadResponses, dto.UploadResponse{
+		uploadResponses = append(uploadResponses, response.UploadResponse{
 			URL:      fileURL,
 			Filename: file.Filename,
 			Size:     file.Size,
@@ -177,11 +224,11 @@ func (c *UploadController) ReplacePage(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "File uploaded successfully", dto.UploadResponse{
+	ctx.JSON(http.StatusOK, response.UploadResponse{
 		URL:      fileURL,
 		Filename: file.Filename,
 		Size:     file.Size,
-	}))
+	})
 }
 
 // DeleteFile handles file deletion
@@ -223,7 +270,7 @@ func (c *UploadController) GetFileInfo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dto.FileInfoResponse{
+	ctx.JSON(http.StatusOK, response.FileInfoResponse{
 		ObjectName: objectName,
 		Size:       size,
 	})
@@ -272,52 +319,4 @@ func (c *UploadController) GetImage(ctx *gin.Context) {
 
 	// Stream the file to the response
 	ctx.DataFromReader(http.StatusOK, objInfo.Size, contentType, obj, nil)
-}
-
-// isValidImageFile checks if the file is a valid image
-func isValidImageFile(filename string) bool {
-	validExtensions := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-		".gif":  true,
-		".webp": true,
-	}
-
-	ext := strings.ToLower(filepath.Ext(filename))
-	return validExtensions[ext]
-}
-
-// getImageContentType determines the MIME type based on file extension
-func getImageContentType(filename string) string {
-	ext := strings.ToLower(filepath.Ext(filename))
-	switch ext {
-	case ".jpg", ".jpeg":
-		return "image/jpeg"
-	case ".png":
-		return "image/png"
-	case ".gif":
-		return "image/gif"
-	case ".webp":
-		return "image/webp"
-	case ".svg":
-		return "image/svg+xml"
-	case ".bmp":
-		return "image/bmp"
-	case ".ico":
-		return "image/x-icon"
-	default:
-		return "application/octet-stream"
-	}
-}
-
-func (c *UploadController) validateImageFile(file *multipart.FileHeader) error {
-	if !isValidImageFile(file.Filename) {
-		return fmt.Errorf("invalid file type. Only image files (jpg, jpeg, png, gif, webp) are allowed")
-	}
-
-	if file.Size > MaxFileSize {
-		return fmt.Errorf("file size %d exceeds maximum allowed size %d", file.Size, MaxFileSize)
-	}
-	return nil
 }

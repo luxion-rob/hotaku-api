@@ -1,4 +1,4 @@
-package dto
+package response
 
 // UploadResponse represents the response for file uploads
 type UploadResponse struct {
