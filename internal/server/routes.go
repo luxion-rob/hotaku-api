@@ -26,6 +26,7 @@ func (s *Server) setupRoutes() {
 	{
 		upload.POST("/manga/:manga_id/image", s.uploadController.UploadMangaImage)
 		upload.POST("/manga/:manga_id/chapters/:chapter_id/pages", s.uploadController.UploadChapterPages)
+		upload.PUT("/manga/:manga_id/chapters/:chapter_id/pages/:page", s.uploadController.ReplacePage)
 		upload.DELETE("/files/*object_name", s.uploadController.DeleteFile)
 		upload.GET("/files/*object_name", s.uploadController.GetFileInfo)
 	}
