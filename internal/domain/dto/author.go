@@ -1,23 +1,10 @@
 package dto
 
-import "time"
-
+// AuthorDTO represents the data transfer object for author information
+// Used for transferring author data between different layers of the application
 type AuthorDTO struct {
 	AuthorID   string  `json:"author_id"`
+	ExternalID string  `json:"external_id"`
 	AuthorName string  `json:"author_name"`
 	AuthorBio  *string `json:"author_bio,omitempty"`
-}
-
-type AuthorResponse struct {
-	AuthorDTO
-	ExternalID string    `json:"external_id"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-}
-
-type AuthorListResponse struct {
-	Authors []AuthorDTO `json:"authors"`
-	Total   int64       `json:"total"`
-	Offset  int         `json:"offset"`
-	Limit   int         `json:"limit"`
 }

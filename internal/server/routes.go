@@ -32,7 +32,7 @@ func (s *Server) setupRoutes() {
 		protected.Use(s.authMiddleware)
 		{
 			protected.POST("", s.authorController.CreateAuthor)
-			protected.PUT("/:author_id", s.authorController.UpdateAuthor)
+			protected.PUT("", s.authorController.UpdateAuthor)
 			protected.DELETE("/:author_id", s.authorController.DeleteAuthor)
 		}
 	}

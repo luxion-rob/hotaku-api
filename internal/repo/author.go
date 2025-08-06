@@ -33,6 +33,7 @@ func (r *AuthorRepositoryImpl) Create(author *entities.Author) error {
 func (r *AuthorRepositoryImpl) GetByID(id string) (*entities.Author, error) {
 	var author entities.Author
 
+	// Query the database for author with the specified ID
 	if err := r.db.Where("author_id = ?", id).First(&author).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, apperrors.ErrAuthorNotFound
@@ -46,6 +47,7 @@ func (r *AuthorRepositoryImpl) GetByID(id string) (*entities.Author, error) {
 
 // Update updates an existing author
 func (r *AuthorRepositoryImpl) Update(author *entities.Author) error {
+	// Update the author record in the database
 	res := r.db.Where("author_id = ?", author.AuthorID).Updates(author)
 
 	if res.Error != nil {
@@ -59,6 +61,7 @@ func (r *AuthorRepositoryImpl) Update(author *entities.Author) error {
 
 // Delete removes an author by ID (hard delete)
 func (r *AuthorRepositoryImpl) Delete(id string) error {
+	// Delete the author record from the database
 	res := r.db.Where("author_id = ?", id).Delete(&entities.Author{})
 
 	if res.Error != nil {
@@ -71,16 +74,16 @@ func (r *AuthorRepositoryImpl) Delete(id string) error {
 }
 
 // List retrieves a paginated list of all authors
-func (r *AuthorRepositoryImpl) List(offset, limit int) (entities.AuthorList, int64, error) {
-	var authors entities.AuthorList
+func (r *AuthorRepositoryImpl) List(offset, limit int) ([]entities.Author, int64, error) {
+	var authors []entities.Author
 	var total int64
 
-	// Get total count
+	// Get total count of authors in the database
 	if err := r.db.Model(&entities.Author{}).Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count authors: %w", err)
 	}
 
-	// Get paginated results
+	// Get paginated results ordered by author name
 	if err := r.db.Model(&entities.Author{}).Order("author_name").Offset(offset).Limit(limit).Find(&authors).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to retrieve authors list: %w", err)
 	}
