@@ -24,30 +24,6 @@ func FromAuthDTOToUserEntity(authDTO *dto.AuthDTO) *entities.User {
 	}
 }
 
-func FromAuthDTOToUserDTO(authDTO *dto.AuthDTO) *dto.UserDTO {
-	if authDTO == nil {
-		return nil
-	}
-
-	return &dto.UserDTO{
-		UserID: authDTO.UserID,
-		RoleID: authDTO.RoleID,
-		Name:   authDTO.Name,
-		Email:  authDTO.Email,
-	}
-}
-
-func FromAuthDTOToAuthResponse(authDTO *dto.AuthDTO, token string) *dto.AuthResponse {
-	if authDTO == nil {
-		return nil
-	}
-
-	return &dto.AuthResponse{
-		Token: token,
-		User:  FromAuthDTOToUserDTO(authDTO),
-	}
-}
-
 func FromRegisterRequestToAuthDTO(req *request.RegisterRequest) (*dto.AuthDTO, error) {
 	if req == nil {
 		return nil, fmt.Errorf("request empty")
@@ -70,26 +46,6 @@ func FromRegisterRequestToAuthDTO(req *request.RegisterRequest) (*dto.AuthDTO, e
 	return &user, nil
 }
 
-func FromUpdateProfileRequestToUserEntity(req *request.UpdateProfileRequest, existingUser *entities.User) *entities.User {
-	if req == nil || existingUser == nil {
-		return nil
-	}
-
-	// Create a copy of the existing user
-	updatedUser := *existingUser
-
-	// Update only the fields that are provided in the request
-	if req.Name != "" {
-		updatedUser.Name = req.Name
-	}
-
-	if req.Email != "" {
-		updatedUser.Email = req.Email
-	}
-
-	return &updatedUser
-}
-
 func FromLoginRequestToLoginDTO(req *request.LoginRequest) *dto.LoginDTO {
 	if req == nil {
 		return nil
@@ -98,5 +54,17 @@ func FromLoginRequestToLoginDTO(req *request.LoginRequest) *dto.LoginDTO {
 	return &dto.LoginDTO{
 		Email:    req.Email,
 		Password: req.Password,
+	}
+}
+
+func FromChangePasswordRequestToChangePasswordDTO(req *request.ChangePasswordRequest) *dto.ChangePasswordDTO {
+	if req == nil {
+		return nil
+	}
+
+	return &dto.ChangePasswordDTO{
+		CurrentPassword: req.CurrentPassword,
+		NewPassword:     req.NewPassword,
+		ConfirmPassword: req.ConfirmPassword,
 	}
 }

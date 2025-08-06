@@ -40,13 +40,15 @@ func (ac *AuthController) Register(c *gin.Context) {
 	}
 
 	// Call use case
-	body, err := ac.authUseCase.Register(authDTO)
+	userDTO, token, err := ac.authUseCase.Register(authDTO)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Registration failed", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "User registered successfully", body))
+	body := mapper.FromUserDTOToAuthResponse(userDTO, *token)
+
+	c.JSON(http.StatusCreated, response.SuccessResponse(http.StatusCreated, "User registered successfully", body))
 }
 
 // Login handles user login
@@ -61,13 +63,15 @@ func (ac *AuthController) Login(c *gin.Context) {
 	loginDTO := mapper.FromLoginRequestToLoginDTO(&req)
 
 	// Call use case
-	body, err := ac.authUseCase.Login(loginDTO)
+	userDTO, token, err := ac.authUseCase.Login(loginDTO)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Login failed", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Login successful", body))
+	body := mapper.FromUserDTOToAuthResponse(userDTO, *token)
+
+	c.JSON(http.StatusOK, body)
 }
 
 // validateUserID validates that the userID is a valid UUID format
@@ -98,7 +102,7 @@ func (ac *AuthController) Profile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Profile retrieved successfully", body))
+	c.JSON(http.StatusOK, body)
 }
 
 // UpdateProfile updates user profile
@@ -117,14 +121,16 @@ func (ac *AuthController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
+	updateUserDTO := mapper.FromUpdateProfileRequestToUserDTO(&req)
+
 	// Call use case
-	body, err := ac.authUseCase.UpdateProfile(userID, &req)
+	body, err := ac.authUseCase.UpdateProfile(updateUserDTO, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to update profile", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Profile updated successfully", body))
+	c.JSON(http.StatusOK, body)
 }
 
 // ChangePassword changes user password
@@ -143,12 +149,14 @@ func (ac *AuthController) ChangePassword(c *gin.Context) {
 		return
 	}
 
+	changePasswordDTO := mapper.FromChangePasswordRequestToChangePasswordDTO(&req)
+
 	// Call use case
-	err := ac.authUseCase.ChangePassword(userID, &req)
+	err := ac.authUseCase.ChangePassword(changePasswordDTO, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(http.StatusInternalServerError, "Failed to change password", err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessResponse(http.StatusOK, "Password changed successfully", nil))
+	c.Status(http.StatusNoContent)
 }

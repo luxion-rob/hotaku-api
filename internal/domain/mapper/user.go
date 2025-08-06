@@ -3,27 +3,18 @@ package mapper
 import (
 	"hotaku-api/internal/domain/dto"
 	"hotaku-api/internal/domain/entities"
+	"hotaku-api/internal/domain/request"
+	"hotaku-api/internal/domain/response"
 )
 
-func FromUserDTOToAuthResponse(userDTO *dto.UserDTO, token string) *dto.AuthResponse {
+func FromUserDTOToAuthResponse(userDTO *dto.UserDTO, token string) *response.AuthResponse {
 	if userDTO == nil {
 		return nil
 	}
 
-	return &dto.AuthResponse{
+	return &response.AuthResponse{
 		Token: token,
 		User:  userDTO,
-	}
-}
-
-func FromUserEntityToAuthResponse(user *entities.User, token string) *dto.AuthResponse {
-	if user == nil {
-		return nil
-	}
-
-	return &dto.AuthResponse{
-		Token: token,
-		User:  FromUserEntityToUserDTO(user),
 	}
 }
 
@@ -39,5 +30,16 @@ func FromUserEntityToUserDTO(user *entities.User) *dto.UserDTO {
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
+	}
+}
+
+func FromUpdateProfileRequestToUserDTO(req *request.UpdateProfileRequest) *dto.UserDTO {
+	if req == nil {
+		return nil
+	}
+
+	return &dto.UserDTO{
+		Name:  req.Name,
+		Email: req.Email,
 	}
 }
