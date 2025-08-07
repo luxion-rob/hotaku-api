@@ -53,7 +53,7 @@ help() {
   echo -e "  prodUp              🐳 Start production containers (requires secrets)"
   echo -e "  generateSecrets     🔐 Generate secure secrets for production"
   echo -e "  migrateUp           🗄️  Run database migrations"
-  echo -e "  migrateDown         🗄️  Rollback to specific version (set \$version)"
+  echo -e "  migrateDown         🗄️  Rollback to specific version (requires <version>)"
   echo -e "  migrateStatus       🗄️  Show migration status"
   echo -e "  migrateRefresh      🗄️  Refresh migrations (rollback all & rerun)"
   echo -e "  migrateForce        🗄️  Force migration version (requires <version>)"
