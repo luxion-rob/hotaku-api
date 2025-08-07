@@ -27,7 +27,7 @@ trap 'error_handler $LINENO' ERR
 # Ensure secrets exist
 ensure_secrets() {
   if [[ ! -f "$INFRA_DIR/secrets/db_password.txt" || ! -f "$INFRA_DIR/secrets/jwt_secret.txt" ]]; then
-    echo "❌ Error: Secret files not found. Run './hotakuts generateSecrets' first"
+    echo "❌ Error: Secret files not found. Run './hotakut generateSecrets' first"
     exit 1
   else
     echo "✅ Secret files found and ready"
@@ -40,7 +40,7 @@ ensure_migrate_script() {
     echo "❌ Error: Migration script not found at $migrate_script"
     exit 1
   fi
-  chmod x "$migrate_script"
+  chmod +x "$migrate_script"
   echo "✅ Migration script permissions set"
 }
 # Commands
@@ -55,8 +55,8 @@ help() {
   echo -e "  migrateUp           🗄️  Run database migrations"
   echo -e "  migrateDown         🗄️  Rollback to specific version (set \$version)"
   echo -e "  migrateStatus       🗄️  Show migration status"
-  echo -e "  migrateRefresh      🗄️  Refresh migrations (rollback all  rerun)"
-  echo -e "  migrateForce        🗄️  Force migration version (set \$version)"
+  echo -e "  migrateRefresh      🗄️  Refresh migrations (rollback all & rerun)"
+  echo -e "  migrateForce        🗄️  Force migration version (requires <version>)"
   echo -e "  clean               🧹 Clean up containers, volumes, and cache"
   echo -e "  devSetup            🛠️  Start dev containers and run migrations"
   echo -e "  setupEnv            🔧 Copy environment files to required locations"
