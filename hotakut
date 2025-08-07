@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+#
+# hotakut - Hotaku API Development & Production Management Script
+# 
+# This script provides commands for managing Docker containers, database migrations,
+# secret generation, and environment setup for the Hotaku API project.
+#
+# Usage: ./hotakut <command> [args...]
+# Run './hotakut help' for available commands.
+#
+
+set -euo pipefail
+
+readonly INFRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/infra" && pwd)"
+readonly PROJECT_ROOT="$(cd "$INFRA_DIR/.." && pwd)"
+if [[ ! -d "$INFRA_DIR" ]]; then
+ echo "❌ Error: Infrastructure directory not found at $INFRA_DIR"
+ exit 1
+fi
+error_handler() {
+  local exit_code=$?
+  echo "❌ Error occurred in script at line $1. Exit code: $exit_code" >&2
+  exit $exit_code
+}
+
+trap 'error_handler $LINENO' ERR
+# Ensure secrets exist
+ensure_secrets() {
+  if [[ ! -f "$INFRA_DIR/secrets/db_password.txt" || ! -f "$INFRA_DIR/secrets/jwt_secret.txt" ]]; then
+    echo "❌ Error: Secret files not found. Run './hotakut generateSecrets' first"
+    exit 1
+  else
+    echo "✅ Secret files found and ready"
+  fi
+}
+# Ensure migrate script is executable
+ensure_migrate_script() {
+  local migrate_script="$INFRA_DIR/scripts/migrate.sh"
+  if [[ ! -f "$migrate_script" ]]; then
+    echo "❌ Error: Migration script not found at $migrate_script"
+    exit 1
+  fi
+  chmod +x "$migrate_script"
+  echo "✅ Migration script permissions set"
+}
+# Commands
+help() {
+  echo -e "🚀 Hotaku API - Development Commands"
+  echo -e "====================================="
+  echo ""
+  echo -e "  dockerUp            🐳 Start development containers"
+  echo -e "  dockerDown          🐳 Stop all containers"
+  echo -e "  prodUp              🐳 Start production containers (requires secrets)"
+  echo -e "  generateSecrets     🔐 Generate secure secrets for production"
+  echo -e "  migrateUp           🗄️  Run database migrations"
+  echo -e "  migrateDown         🗄️  Rollback to specific version (requires <version>)"
+  echo -e "  migrateStatus       🗄️  Show migration status"
+  echo -e "  migrateRefresh      🗄️  Refresh migrations (rollback all & rerun)"
+  echo -e "  migrateForce        🗄️  Force migration version (requires <version>)"
+  echo -e "  clean               🧹 Clean up containers, volumes, and cache"
+  echo -e "  devSetup            🛠️  Start dev containers and run migrations"
+  echo -e "  setupEnv            🔧 Copy environment files to required locations"
+  echo -e "  help                📘 Show this help message"
+  echo ""
+  echo -e "💡 Quick Start:"
+  echo -e "  ./hotakut setupEnv"
+  echo -e "  ./hotakut devSetup"
+}
+dockerUp() {
+  echo "Starting development containers..."
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.yml" up -d
+  echo "Development containers started"
+}
+
+prodUp() {
+  echo "Starting production containers..."
+  ensure_secrets
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.prod.yml" up -d
+  echo "Production containers started"
+}
+
+dockerDown() {
+  echo "Stopping containers..."
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.yml" down 2>/dev/null || true
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.prod.yml" down 2>/dev/null || true
+  echo "Containers stopped"
+}
+
+generateSecrets() {
+  echo "Start generate..."
+  mkdir -p "$INFRA_DIR/secrets"
+  openssl rand -base64 32 > "$INFRA_DIR/secrets/db_password.txt"
+  openssl rand -base64 64 > "$INFRA_DIR/secrets/jwt_secret.txt" 
+  # Set secure permissions (owner read-only)
+  chmod 600 "$INFRA_DIR/secrets"/*.txt
+  
+  # Validate secrets were created
+  if [[ -f "$INFRA_DIR/secrets/db_password.txt" && -f "$INFRA_DIR/secrets/jwt_secret.txt" ]]; then
+    echo "Secrets generated successfully"
+  else
+    echo "❌ Error: Failed to generate secrets"
+    exit 1
+  fi
+}
+
+migrateUp() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" up
+}
+
+migrateDown() {
+  ensure_migrate_script
+  if [[ -z "${1:-}" ]]; then
+    echo "❌ Error: Version parameter required for migrateDown"
+    echo "Usage: ./hotakut migrateDown <version>"
+    exit 1
+  fi
+  bash "$INFRA_DIR/scripts/migrate.sh" down "$1"
+}
+
+migrateStatus() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" status
+}
+
+migrateRefresh() {
+  ensure_migrate_script
+  bash "$INFRA_DIR/scripts/migrate.sh" refresh
+}
+
+migrateForce() {
+  ensure_migrate_script
+  if [[ -z "${1:-}" ]]; then
+    echo "❌ Error: Version parameter required for migrateForce"
+    echo "Usage: ./hotakut migrateForce <version>"
+    exit 1
+  fi
+  bash "$INFRA_DIR/scripts/migrate.sh" force "$1"
+}
+
+clean() {
+  echo "This will remove all containers, volumes, and unused Docker resources."
+  read -p "Are you sure? (y/N): " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "❌ Clean operation cancelled"
+    exit 0
+  fi
+  
+  echo "Cleaning up Docker resources..."
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.yml" down -v
+  docker compose --env-file "$PROJECT_ROOT/.env" -f "$INFRA_DIR/docker/docker-compose.prod.yml" down -v
+  docker system prune -f
+  echo "Cleanup completed"
+}
+
+devSetup() {
+  dockerUp
+  migrateUp
+}
+
+setupEnv() {
+  bash "$INFRA_DIR/scripts/setup-env.sh"
+}
+
+# Main dispatcher
+raw_cmd="${1:-help}"
+shift || true
+
+# Call function if defined
+if declare -f "$raw_cmd" > /dev/null; then
+  "$raw_cmd" "$@"
+else
+  echo "❌ Unknown command: $raw_cmd"
+  echo "Use './hotakut help' to see available commands"
+  exit 1
+fi
+
